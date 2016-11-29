@@ -1,0 +1,9 @@
+*.pyc
+*.swg
+*.pdf
+.cache
+.idea
+*.png
+*~
+log.txt
+_build/
