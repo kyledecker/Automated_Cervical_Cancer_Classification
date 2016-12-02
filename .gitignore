@@ -4,6 +4,7 @@
 .cache
 .idea
 *.png
+*.tif
 *~
 log.txt
 _build/
