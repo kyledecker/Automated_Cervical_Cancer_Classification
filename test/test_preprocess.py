@@ -57,6 +57,3 @@ def test_extract_hist():
     expected[10] = 2
 
     assert np.array_equal(hist, expected)
-
-
-
