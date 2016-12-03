@@ -15,17 +15,17 @@ def make_test_rgb(saveflag=True, filename='./test/test_image.tif'):
     import numpy as np
 
     w, h = 10, 10
-    pix_array = np.zeros((h, w, 3), dtype=np.uint8)
-    pix_array[:, 6:, 1] = 100.*np.ones((h, w-6))
-    pix_array[5, 5] = (100., 0., 0.)
-    pix_array[1, 1] = (100., 0., 100.)
-    pix_array[9, :] = 255.*np.ones((1, w, 3))
+    rgb = np.zeros((h, w, 3), dtype=np.uint8)
+    rgb[:, 6:, 1] = 100.*np.ones((h, w-6))
+    rgb[5, 5] = (100., 0., 0.)
+    rgb[1, 1] = (100., 0., 100.)
+    rgb[9, :] = 255.*np.ones((1, w, 3))
 
     if saveflag:
-        img = Image.fromarray(pix_array, 'RGB')
+        img = Image.fromarray(rgb, 'RGB')
         img.save(filename)
 
-    return pix_array
+    return rgb
 
 
 def test_read_tiff():
@@ -35,9 +35,9 @@ def test_read_tiff():
     testfile = './test/test_image.tif'
 
     # compare rgb values loaded from test file with known pixel values
-    pix_array = make_test_rgb(saveflag=True, filename=testfile)
-    rgb = read_tiff(filename=testfile)
-    assert np.array_equal(rgb, pix_array)
+    expected = make_test_rgb(saveflag=True, filename=testfile)
+    actual = read_tiff(filename=testfile)
+    assert np.array_equal(expected, actual)
 
 
 def test_extract_hist():
@@ -49,10 +49,26 @@ def test_extract_hist():
     pix_array[0, 1] = 10
     pix_array[0, 0] = 10
     pix_array[1, 0] = np.nan
-    hist = extract_hist(pix_array)
+    actual = extract_hist(pix_array)
 
     expected = np.zeros(256)
     expected[255] = 1
     expected[10] = 2
 
-    assert np.array_equal(hist, expected)
+    assert np.array_equal(actual, expected)
+
+
+def test_remove_background():
+    from preprocess import remove_background
+    import numpy as np
+
+    rgb = np.zeros((2, 2, 3))
+    rgb[1, 1, 1] = 255
+
+    actual = remove_background(rgb)
+    expected = np.nan*np.empty((2, 2, 3))
+
+    expected[1, 1, :] = (0, 255, 0)
+    assert np.allclose(actual, expected, rtol=1e-05, atol=1e-08,
+                       equal_nan=True)
+
