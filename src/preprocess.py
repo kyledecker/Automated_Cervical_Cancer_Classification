@@ -91,3 +91,10 @@ def remove_background(rgb):
         logging.error(msg)
         print(msg)
         sys.exit()
+
+    for ii in range(0, img_shape[0]):
+        for jj in range(0, img_shape[1]):
+            if np.sum(rgb[ii, jj]) == 0:
+                rgb[ii, jj, :] = (np.nan, np.nan, np.nan)
+
+    return rgb
