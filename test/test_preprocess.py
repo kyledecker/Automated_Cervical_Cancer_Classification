@@ -36,8 +36,7 @@ def test_read_tiff():
 
     # compare rgb values loaded from test file with known pixel values
     pix_array = make_test_rgb(saveflag=True, filename=testfile)
-    r, g, b = read_tiff(filename=testfile, verb=0)
-    rgb = np.transpose((r, g, b), (1, 2, 0))
+    rgb = read_tiff(filename=testfile)
     assert np.array_equal(rgb, pix_array)
 
 

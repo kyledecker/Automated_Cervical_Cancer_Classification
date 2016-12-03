@@ -8,7 +8,7 @@ def read_tiff(filename, verb=False):
 
     :param filename: TIFF path and filename
     :param verb: verbosity (set True to show TIFF image), default False
-    :return: R, G, B (np.arrays)
+    :return: RGB pixel array (np.array)
     """
     from PIL import Image
     import numpy as np
@@ -35,7 +35,13 @@ def read_tiff(filename, verb=False):
     ga = np.array(g)
     ba = np.array(b)
 
-    return ra, ga, ba
+    img_shape = np.shape(ra)
+    rgb = np.zeros((img_shape[0], img_shape[1], 3))
+    rgb[:, :, 0] = ra
+    rgb[:, :, 1] = ga
+    rgb[:, :, 2] = ba
+
+    return rgb
 
 
 def extract_hist(pix_array, verb=False):
@@ -67,3 +73,21 @@ def extract_hist(pix_array, verb=False):
         plt.show()
 
     return hist
+
+
+def remove_background(rgb):
+    """
+    identify background pixels (R=0, B=0, and G=0) and convert to NaN
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :return: RGB pixel array (np.array)
+    """
+    import numpy as np
+
+    img_shape = np.shape(rgb)
+    if img_shape[2] != 3:
+        msg = 'ERROR [remove_background] Dimensions of input RGB pixel array ' \
+              'incorrect. Expected dimensions are height x width x RGB.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
