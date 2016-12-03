@@ -3,24 +3,27 @@ import sys
 sys.path.insert(0, os.path.abspath('./src/'))
 
 
-def make_test_tiff(filename='./test/test_image.tif'):
+def make_test_rgb(saveflag=True, filename='./test/test_image.tif'):
     """
-    generate TIFF image from known RGB pixel array
+    generate known RGB pixel array and output TIFF file
 
+    :param saveflag: flag to save output TIFF file, default True
     :param filename: path and filename of saved TFF test file
-    :return: pixel array used to generate TIFF
+    :return: RGB pixel array
     """
     from PIL import Image
     import numpy as np
 
     w, h = 10, 10
     pix_array = np.zeros((h, w, 3), dtype=np.uint8)
-    for ii in range(0, h):
-        for jj in range(0, w):
-            pix_array[ii, jj] = [ii * 10, jj * 10, 90]
+    pix_array[:, 6:, 1] = 100.*np.ones((h, w-6))
+    pix_array[5, 5] = (100., 0., 0.)
+    pix_array[1, 1] = (100., 0., 100.)
+    pix_array[9, :] = 255.*np.ones((1, w, 3))
 
-    img = Image.fromarray(pix_array, 'RGB')
-    img.save(filename)
+    if saveflag:
+        img = Image.fromarray(pix_array, 'RGB')
+        img.save(filename)
 
     return pix_array
 
@@ -31,10 +34,29 @@ def test_read_tiff():
 
     testfile = './test/test_image.tif'
 
-    # compare rgb values loaded from test file with expected pixel values
-    pix_array = make_test_tiff(testfile)
+    # compare rgb values loaded from test file with known pixel values
+    pix_array = make_test_rgb(saveflag=True, filename=testfile)
     r, g, b = read_tiff(filename=testfile, verb=0)
     rgb = np.transpose((r, g, b), (1, 2, 0))
     assert np.array_equal(rgb, pix_array)
+
+
+def test_extract_hist():
+    from preprocess import extract_hist
+    import numpy as np
+
+    pix_array = np.zeros((2, 2))
+    pix_array[1, 1] = 255
+    pix_array[0, 1] = 10
+    pix_array[0, 0] = 10
+    hist = extract_hist(pix_array)
+
+    expected = np.zeros(256)
+    expected[255] = 1
+    expected[10] = 2
+    expected[0] = 1
+
+    assert np.array_equal(hist, expected)
+
 
 
