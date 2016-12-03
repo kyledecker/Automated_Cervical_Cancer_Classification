@@ -57,6 +57,7 @@ def extract_hist(pix_array, verb=False):
         sys.exit()
 
     pix_array = np.ravel(pix_array)
+    pix_array = pix_array[np.isfinite(pix_array)]
     hist, bin_edges = np.histogram(pix_array, bins=256, range=(0, 255))
 
     if verb:

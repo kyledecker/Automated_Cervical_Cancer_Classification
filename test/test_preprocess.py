@@ -49,12 +49,12 @@ def test_extract_hist():
     pix_array[1, 1] = 255
     pix_array[0, 1] = 10
     pix_array[0, 0] = 10
+    pix_array[1, 0] = np.nan
     hist = extract_hist(pix_array)
 
     expected = np.zeros(256)
     expected[255] = 1
     expected[10] = 2
-    expected[0] = 1
 
     assert np.array_equal(hist, expected)
 
