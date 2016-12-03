@@ -4,8 +4,8 @@ import logging
 sys.path.insert(0, os.path.abspath('./src/'))
 
 if __name__ == "__main__":
-    from preprocess import read_tiff, extract_hist
+    from preprocess import read_tiff, rgb_histogram
 
-    ra, ga, ba = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
+    rgb = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
 
-    extract_hist(ra, verb=True)
+    rgb_histogram(rgb, verb=True)

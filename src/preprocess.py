@@ -50,7 +50,7 @@ def extract_hist(pix_array, verb=False):
 
     :param pix_array: 1D or 2D array of 0 to 255 pixel values
     :param verb: verbosity (set True to show histogram), default False
-    :return: histogram frequencies for 0 to 255 (np.array)
+    :return: histogram frequencies for 0-255 (np.array)
     """
     import numpy as np
 
@@ -98,3 +98,45 @@ def remove_background(rgb):
                 rgb[ii, jj, :] = (np.nan, np.nan, np.nan)
 
     return rgb
+
+
+def rgb_histogram(rgb, verb=False, exclude_bg=True):
+    """
+    generate histograms for each color channel of input RGB pixel array
+
+    :param rgb: RGB pixel array
+    :param verb: verbosity (set True to show histograms), default False
+    :param exclude_bg: flag to exclude background (0,0,0) pixels, default True
+    :return: histogram frequencies for 0-255 for each color channel (np.arrays)
+    """
+    import numpy as np
+
+    if exclude_bg:
+        rgb = remove_background(rgb)
+
+    img_shape = np.shape(rgb)
+    if img_shape[2] != 3:
+        msg = 'ERROR [rgb_histogram] Dimensions of input RGB pixel array ' \
+              'incorrect. Expected dimensions are height x width x RGB.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    rh = extract_hist(np.squeeze(rgb[:, :, 0]))
+    gh = extract_hist(np.squeeze(rgb[:, :, 1]))
+    bh = extract_hist(np.squeeze(rgb[:, :, 2]))
+
+    msg = '[rgb_histogram] Extracting RGB histograms from pixel array.'
+    logging.debug(msg)
+    if verb:
+        print(msg)
+        import matplotlib.pyplot as plt
+        bins = [ii for ii in range(0, 256)]
+
+        f, axarr = plt.subplots(3, sharex=True)
+        axarr[0].plot(bins, rh)
+        axarr[1].plot(bins, gh)
+        axarr[2].plot(bins, bh)
+        plt.show()
+
+    return rh, gh, bh

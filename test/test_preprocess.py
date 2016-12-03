@@ -71,4 +71,3 @@ def test_remove_background():
     expected[1, 1, :] = (0, 255, 0)
     assert np.allclose(actual, expected, rtol=1e-05, atol=1e-08,
                        equal_nan=True)
-
