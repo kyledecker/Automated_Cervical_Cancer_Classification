@@ -46,4 +46,23 @@ def extract_hist(pix_array, verb=False):
     :param verb: verbosity (set True to show histogram), default False
     :return: histogram frequencies for 0 to 255 (np.array)
     """
+    import numpy as np
 
+    if np.max(pix_array) > 255 or np.min(pix_array) < 0:
+        msg = 'ERROR [extract_hist] Pixel array value out of bounds (min=0, ' \
+              'max=255). Actual bounds (min=%d, max=%d).' % (np.min(
+                pix_array), np.max(pix_array))
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    pix_array = np.ravel(pix_array)
+    hist = np.histogram(pix_array, bins=256, range=(0, 255))
+
+    if verb:
+        import matplotlib.pyplot as plt
+        plt.hist(pix_array, bins=256, range=(0, 255))
+        plt.axis('tight')
+        plt.show()
+
+    return hist

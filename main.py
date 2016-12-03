@@ -4,6 +4,8 @@ import logging
 sys.path.insert(0, os.path.abspath('./src/'))
 
 if __name__ == "__main__":
-    from preprocess import read_tiff
+    from preprocess import read_tiff, extract_hist
 
-    read_tiff(filename='./test/a_image.tif', verb=1)
+    ra, ga, ba = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
+
+    extract_hist(ra, verb=True)
