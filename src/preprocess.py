@@ -150,9 +150,8 @@ def process_rgb_histogram(hist, omit=[]):
     hist = np.array(hist).astype('float')
 
     for ii in omit:
-        hist[ii] = np.nan
+        hist[ii] = 0
 
-    hist = hist[np.isfinite(hist)]
     tot_pix = sum(hist)
     norm_hist = np.divide(hist, tot_pix)
 
@@ -226,7 +225,6 @@ def rgb_histogram(rgb, verb=False, process=True, omit=[]):
         print(msg)
         import matplotlib.pyplot as plt
         bins = [ii for ii in range(0, 256)]
-        bins = np.delete(bins, omit)
 
         f, axarr = plt.subplots(3, sharex=True)
         axarr[0].bar(bins, rh)
