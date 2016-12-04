@@ -110,3 +110,16 @@ def test_rgb_histogram():
     assert np.array_equal(rh, expected_rh)
     assert np.array_equal(gh, expected_gh)
     assert np.array_equal(bh, expected_bh)
+
+    rh, gh, bh = rgb_histogram(rgb, process=True)
+    expected_rh = np.zeros(256)
+    expected_rh[100] = 1
+    expected_gh = np.zeros(256)
+    expected_gh[0] = 1
+    expected_bh = np.zeros(256)
+    expected_bh[100] = 0.5
+    expected_bh[0] = 0.5
+
+    assert np.array_equal(rh, expected_rh)
+    assert np.array_equal(gh, expected_gh)
+    assert np.array_equal(bh, expected_bh)
