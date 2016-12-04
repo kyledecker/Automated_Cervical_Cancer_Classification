@@ -7,7 +7,7 @@ def read_tiff(filename, verb=False):
     read in TIFF image from file and output pixel RGB values
 
     :param filename: TIFF path and filename
-    :param verb: verbosity (set True to show TIFF image), default False
+    :param verb: verbose mode to show TIFF image, default False
     :return: RGB pixel array (np.array)
     """
     from PIL import Image
@@ -49,8 +49,8 @@ def extract_hist(pix_array, verb=False):
     generate histogram for 1D or 2D array of single color channel pixel values
 
     :param pix_array: 1D or 2D array of 0 to 255 pixel values
-    :param verb: show histogram, default False
-    :return: histogram frequencies for 0-255 (np.array)
+    :param verb: verbose mode to show histogram, default False
+    :return: histogram values for 0-255 (np.array)
     """
     import numpy as np
 
@@ -62,12 +62,12 @@ def extract_hist(pix_array, verb=False):
         print(msg)
         sys.exit()
 
-    pix_array = np.ravel(pix_array)
     pix_array = pix_array[np.isfinite(pix_array)]
     hist, bin_edges = np.histogram(pix_array, bins=256, range=(0, 255))
 
     if verb:
         import matplotlib.pyplot as plt
+        pix_array = np.ravel(pix_array)
         plt.hist(pix_array, bins=256, range=(0, 255))
         plt.axis('tight')
         plt.show()
@@ -80,7 +80,7 @@ def remove_background(rgb, verb=False):
     identify background pixels (R=0, B=0, and G=0) and convert to NaN
 
     :param rgb: RGB pixel array with dimensions: height x width x RGB
-    :param verb: show image with excluded pixels in gray, default False
+    :param verb: verbose mode to show excluded pixels in gray, default False
     :return: RGB pixel array (np.array)
     """
     import numpy as np
@@ -112,7 +112,7 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
 
     :param rgb: RGB pixel array with dimensions: height x width x RGB
     :param lim: RGB pixel value upper limit, default (255, 255, 255)
-    :param verb: show image with excluded pixels in gray, default False
+    :param verb: verbose mode to show excluded pixels in gray, default False
     :return: RGB pixel array (np.array)
     """
     import numpy as np
@@ -140,15 +140,38 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     return rgb
 
 
-def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
+def process_rgb_histogram(hist, omit=[]):
     """
-    generate histograms for each color channel of input RGB pixel array
+    omit unwanted bins and normalize histogram by dividing out total # pixels
+
+    :param hist: color channel histogram with 256 bins
+    :param omit: pixel value bins to omit, default []
+    :return: normalized histogram (np.array)
+    """
+    import numpy as np
+
+    hist = np.array(hist).astype('float')
+
+    for ii in omit:
+        hist[ii] = np.nan
+
+    hist = hist[np.isfinite(hist)]
+    tot_pix = sum(hist)
+    norm_hist = np.divide(hist, tot_pix)
+
+    return norm_hist
+
+
+def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255,
+                                                                255)):
+    """
+    pre-process rgb pixel array to label background and bright (glare) pixels
 
     :param rgb: RGB pixel array
-    :param verb: show histograms, default False
+    :param verb: verbose mode to show excluded pixels, default False
     :param exclude_bg: exclude background (0,0,0) pixels, default True
     :param upper_lim: exclude RGB above upper limit, default (255, 255, 255)
-    :return: histogram frequencies for 0-255 for each color channel (np.arrays)
+    :return: RGB pixel array (np.array)
     """
     import numpy as np
 
@@ -158,6 +181,30 @@ def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
         rgb = remove_background(rgb)
     if np.sum(upper_lim) < np.sum(max_RGB):
         rgb = limit_upper_bound(rgb, upper_lim)
+
+    msg = '[rgb_preprocess] Pre-processing RGB pixel array.'
+    logging.debug(msg)
+    if verb:
+        from accessory import show_rgb
+        print(msg)
+        test_img = np.array(rgb)
+        test_img[np.isnan(test_img)] = 100
+        show_rgb(test_img)
+
+    return rgb
+
+
+def rgb_histogram(rgb, verb=False, process=True, omit=[]):
+    """
+    generate histograms for each color channel of input RGB pixel array
+
+    :param rgb: RGB pixel array
+    :param verb: verbose mode to show histograms, default False
+    :param process: normalize histograms and omit pixel bins, default True
+    :param omit: pixel value bins to omit, default []
+    :return: histogram values for 0-255 for each color channel (np.arrays)
+    """
+    import numpy as np
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
@@ -171,33 +218,34 @@ def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
     gh = extract_hist(np.squeeze(rgb[:, :, 1]))
     bh = extract_hist(np.squeeze(rgb[:, :, 2]))
 
+    if process:
+        rh = process_rgb_histogram(rh, omit)
+        gh = process_rgb_histogram(gh, omit)
+        bh = process_rgb_histogram(bh, omit)
+
     msg = '[rgb_histogram] Extracting RGB histograms from pixel array.'
     logging.debug(msg)
     if verb:
-        from accessory import show_rgb
-        test_img = np.array(rgb)
-        test_img[np.isnan(test_img)] = 100
-        show_rgb(test_img)
-
         print(msg)
         import matplotlib.pyplot as plt
         bins = [ii for ii in range(0, 256)]
+        bins = np.delete(bins, omit)
 
         f, axarr = plt.subplots(3, sharex=True)
         axarr[0].bar(bins, rh)
         axarr[0].axis('tight')
         axarr[0].set_xlabel('R Pixel Value')
-        axarr[0].set_ylabel('Counts')
+        axarr[0].set_ylabel('Frequency')
 
         axarr[1].bar(bins, gh)
         axarr[1].axis('tight')
         axarr[1].set_xlabel('G Pixel Value')
-        axarr[1].set_ylabel('Counts')
+        axarr[1].set_ylabel('Frequency')
 
         axarr[2].bar(bins, bh)
         axarr[2].axis('tight')
         axarr[2].set_xlabel('B Pixel Value')
-        axarr[2].set_ylabel('Counts')
+        axarr[2].set_ylabel('Frequency')
 
         plt.show()
 
