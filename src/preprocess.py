@@ -75,19 +75,20 @@ def extract_hist(pix_array, verb=False):
     return hist
 
 
-def remove_background(rgb):
+def remove_background(rgb, verb=False):
     """
     identify background pixels (R=0, B=0, and G=0) and convert to NaN
 
     :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param verb: show image with excluded pixels in gray, default False
     :return: RGB pixel array (np.array)
     """
     import numpy as np
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [remove_background] Dimensions of input RGB pixel array ' \
-              'incorrect. Expected dimensions are height x width x RGB.'
+        msg = 'ERROR [remove_background] Dimensions of input RGB pixel ' \
+              'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
         sys.exit()
@@ -96,33 +97,45 @@ def remove_background(rgb):
         for jj in range(0, img_shape[1]):
             if np.sum(rgb[ii, jj]) == 0:
                 rgb[ii, jj, :] = (np.nan, np.nan, np.nan)
+    if verb:
+        from accessory import show_rgb
+        test_img = rgb
+        test_img[np.isnan(rgb)] = 100
+        show_rgb(test_img)
 
     return rgb
 
 
-def limit_upper_bound(rgb, lim=(255, 255, 255)):
+def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     """
     identify bright pixels above RGB threshold and convert to NaN
 
     :param rgb: RGB pixel array with dimensions: height x width x RGB
     :param lim: RGB pixel value upper limit, default (255, 255, 255)
+    :param verb: show image with excluded pixels in gray, default False
     :return: RGB pixel array (np.array)
     """
     import numpy as np
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [limit_upper_bound] Dimensions of input RGB pixel array ' \
-              'incorrect. Expected dimensions are height x width x RGB.'
+        msg = 'ERROR [limit_upper_bound] Dimensions of input RGB pixel ' \
+              'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
         sys.exit()
 
     for ii in range(0, img_shape[0]):
         for jj in range(0, img_shape[1]):
-            if rgb[ii, jj, 0] > lim[0] and rgb[ii, jj, 1] > lim[1] and rgb[
-                ii, jj, 2] > lim[2]:
+            if rgb[ii, jj, 0] > lim[0] \
+                    and rgb[ii, jj, 1] > lim[1] \
+                    and rgb[ii, jj, 2] > lim[2]:
                 rgb[ii, jj, :] = (np.nan, np.nan, np.nan)
+    if verb:
+        from accessory import show_rgb
+        test_img = rgb
+        test_img[np.isnan(rgb)] = 100
+        show_rgb(test_img)
 
     return rgb
 
@@ -142,9 +155,9 @@ def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
     max_RGB = (255, 255, 255)
 
     if exclude_bg:
-        rgb = remove_background(rgb)
+        rgb = remove_background(rgb, verb)
     if np.sum(upper_lim) < np.sum(max_RGB):
-        rgb = limit_upper_bound(rgb, upper_lim)
+        rgb = limit_upper_bound(rgb, upper_lim, verb)
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
