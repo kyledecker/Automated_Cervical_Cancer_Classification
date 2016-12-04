@@ -4,6 +4,9 @@ import logging
 sys.path.insert(0, os.path.abspath('./src/'))
 
 if __name__ == "__main__":
-    from preprocess import read_tiff
+    from preprocess import read_tiff, rgb_histogram
 
-    read_tiff(filename='./test/a_image.tif', verb=1)
+    rgb = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
+
+    rh, gh, bh = rgb_histogram(rgb, verb=True, exclude_bg=True,
+                               upper_lim=(0,  0,  150))
