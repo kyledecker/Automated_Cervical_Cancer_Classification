@@ -9,6 +9,6 @@ if __name__ == "__main__":
 
     rgb = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
     rgb = rgb_preprocess(rgb, verb=True, exclude_bg=True,
-                               upper_lim=(0,  0,  150))
+                               upper_lim=(0,  0,  240))
 
     rh, gh, bh = rgb_histogram(rgb, verb=True, omit=(0, 255))
