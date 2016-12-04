@@ -8,4 +8,4 @@ if __name__ == "__main__":
 
     rgb = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
 
-    rgb_histogram(rgb, verb=True, exclude_bg=True, upper_lim=(200, 200,  200))
+    rgb_histogram(rgb, verb=True, exclude_bg=True, upper_lim=(0, 0,  150))

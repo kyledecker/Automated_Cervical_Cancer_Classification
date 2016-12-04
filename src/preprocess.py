@@ -99,8 +99,8 @@ def remove_background(rgb, verb=False):
                 rgb[ii, jj, :] = (np.nan, np.nan, np.nan)
     if verb:
         from accessory import show_rgb
-        test_img = rgb
-        test_img[np.isnan(rgb)] = 100
+        test_img = np.array(rgb)
+        test_img[np.isnan(test_img)] = 100
         show_rgb(test_img)
 
     return rgb
@@ -133,8 +133,8 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
                 rgb[ii, jj, :] = (np.nan, np.nan, np.nan)
     if verb:
         from accessory import show_rgb
-        test_img = rgb
-        test_img[np.isnan(rgb)] = 100
+        test_img = np.array(rgb)
+        test_img[np.isnan(test_img)] = 100
         show_rgb(test_img)
 
     return rgb
@@ -155,9 +155,9 @@ def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
     max_RGB = (255, 255, 255)
 
     if exclude_bg:
-        rgb = remove_background(rgb, verb)
+        rgb = remove_background(rgb)
     if np.sum(upper_lim) < np.sum(max_RGB):
-        rgb = limit_upper_bound(rgb, upper_lim, verb)
+        rgb = limit_upper_bound(rgb, upper_lim)
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
@@ -174,6 +174,11 @@ def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
     msg = '[rgb_histogram] Extracting RGB histograms from pixel array.'
     logging.debug(msg)
     if verb:
+        from accessory import show_rgb
+        test_img = np.array(rgb)
+        test_img[np.isnan(test_img)] = 100
+        show_rgb(test_img)
+
         print(msg)
         import matplotlib.pyplot as plt
         bins = [ii for ii in range(0, 256)]
