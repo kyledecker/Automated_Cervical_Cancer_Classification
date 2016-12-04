@@ -93,12 +93,12 @@ def test_limit_upper_bound():
 
 
 def test_rgb_histogram():
-    from preprocess import rgb_histogram
+    from preprocess import rgb_histogram, rgb_preprocess
     import numpy as np
 
     rgb = make_test_rgb(saveflag=False)
-    rh, gh, bh = rgb_histogram(rgb, exclude_bg=True, upper_lim=(200,  200,
-                                                                200))
+    rgb = rgb_preprocess(rgb, exclude_bg=True, upper_lim=(200, 200, 200))
+    rh, gh, bh = rgb_histogram(rgb, process=False)
     expected_rh = np.zeros(256)
     expected_rh[100] = 2
     expected_gh = np.zeros(256)
@@ -106,6 +106,19 @@ def test_rgb_histogram():
     expected_bh = np.zeros(256)
     expected_bh[100] = 1
     expected_bh[0] = 1
+
+    assert np.array_equal(rh, expected_rh)
+    assert np.array_equal(gh, expected_gh)
+    assert np.array_equal(bh, expected_bh)
+
+    rh, gh, bh = rgb_histogram(rgb, process=True)
+    expected_rh = np.zeros(256)
+    expected_rh[100] = 1
+    expected_gh = np.zeros(256)
+    expected_gh[0] = 1
+    expected_bh = np.zeros(256)
+    expected_bh[100] = 0.5
+    expected_bh[0] = 0.5
 
     assert np.array_equal(rh, expected_rh)
     assert np.array_equal(gh, expected_gh)
