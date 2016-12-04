@@ -71,3 +71,18 @@ def test_remove_background():
     expected[1, 1, :] = (0, 255, 0)
     assert np.allclose(actual, expected, rtol=1e-05, atol=1e-08,
                        equal_nan=True)
+
+
+def test_limit_upper_bound():
+    from preprocess import limit_upper_bound
+    import numpy as np
+
+    rgb = 254*np.ones((2, 2, 3))
+    rgb[1, 1, :] = (0, 255, 0)
+
+    actual = limit_upper_bound(rgb, (250, 250, 250))
+    expected = np.nan*np.empty((2, 2, 3))
+
+    expected[1, 1, :] = (0, 255, 0)
+    assert np.allclose(actual, expected, rtol=1e-05, atol=1e-08,
+                       equal_nan=True)
