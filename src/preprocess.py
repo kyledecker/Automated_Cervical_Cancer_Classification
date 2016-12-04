@@ -184,9 +184,21 @@ def rgb_histogram(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255, 255)):
         bins = [ii for ii in range(0, 256)]
 
         f, axarr = plt.subplots(3, sharex=True)
-        axarr[0].plot(bins, rh)
-        axarr[1].plot(bins, gh)
-        axarr[2].plot(bins, bh)
+        axarr[0].bar(bins, rh)
+        axarr[0].axis('tight')
+        axarr[0].set_xlabel('R Pixel Value')
+        axarr[0].set_ylabel('Counts')
+
+        axarr[1].bar(bins, gh)
+        axarr[1].axis('tight')
+        axarr[1].set_xlabel('G Pixel Value')
+        axarr[1].set_ylabel('Counts')
+
+        axarr[2].bar(bins, bh)
+        axarr[2].axis('tight')
+        axarr[2].set_xlabel('B Pixel Value')
+        axarr[2].set_ylabel('Counts')
+
         plt.show()
 
     return rh, gh, bh

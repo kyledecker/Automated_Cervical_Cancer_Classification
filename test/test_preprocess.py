@@ -16,7 +16,6 @@ def make_test_rgb(saveflag=True, filename='./test/test_image.tif'):
 
     w, h = 10, 10
     rgb = np.zeros((h, w, 3), dtype=np.uint8)
-    rgb[:, 6:, 1] = 100.*np.ones((h, w-6))
     rgb[5, 5] = (100., 0., 0.)
     rgb[1, 1] = (100., 0., 100.)
     rgb[9, :] = 255.*np.ones((1, w, 3))
@@ -25,6 +24,7 @@ def make_test_rgb(saveflag=True, filename='./test/test_image.tif'):
         img = Image.fromarray(rgb, 'RGB')
         img.save(filename)
 
+    rgb = rgb.astype('float')
     return rgb
 
 
@@ -37,7 +37,11 @@ def test_read_tiff():
     # compare rgb values loaded from test file with known pixel values
     expected = make_test_rgb(saveflag=True, filename=testfile)
     actual = read_tiff(filename=testfile)
+
     assert np.array_equal(expected, actual)
+
+    # remove test TIFF file when finished
+    os.remove(testfile)
 
 
 def test_extract_hist():
@@ -86,3 +90,23 @@ def test_limit_upper_bound():
     expected[1, 1, :] = (0, 255, 0)
     assert np.allclose(actual, expected, rtol=1e-05, atol=1e-08,
                        equal_nan=True)
+
+
+def test_rgb_histogram():
+    from preprocess import rgb_histogram
+    import numpy as np
+
+    rgb = make_test_rgb(saveflag=False)
+    rh, gh, bh = rgb_histogram(rgb, exclude_bg=True, upper_lim=(200,  200,
+                                                                200))
+    expected_rh = np.zeros(256)
+    expected_rh[100] = 2
+    expected_gh = np.zeros(256)
+    expected_gh[0] = 2
+    expected_bh = np.zeros(256)
+    expected_bh[100] = 1
+    expected_bh[0] = 1
+
+    assert np.array_equal(rh, expected_rh)
+    assert np.array_equal(gh, expected_gh)
+    assert np.array_equal(bh, expected_bh)
