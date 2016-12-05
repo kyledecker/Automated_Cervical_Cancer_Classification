@@ -93,9 +93,9 @@ def remove_background(rgb, verb=False):
         print(msg)
         sys.exit()
 
-    rgb[(rgb[:, :, 0] == 0)
-        & (rgb[:, :, 1] == 0)
-        & (rgb[:, :, 2] == 0), :] = (np.nan, np.nan, np.nan)
+    rgb[(rgb[:, :, 0] == 0) &
+        (rgb[:, :, 1] == 0) &
+        (rgb[:, :, 2] == 0), :] = (np.nan, np.nan, np.nan)
 
     if verb:
         from accessory import show_rgb
@@ -125,9 +125,9 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
         print(msg)
         sys.exit()
 
-    rgb[(rgb[:, :, 0] > lim[0])
-        & (rgb[:, :, 1] > lim[1])
-        & (rgb[:, :, 2] > lim[2]), :] = (np.nan, np.nan, np.nan)
+    rgb[(rgb[:, :, 0] > lim[0]) &
+        (rgb[:, :, 1] > lim[1]) &
+        (rgb[:, :, 2] > lim[2]), :] = (np.nan, np.nan, np.nan)
     if verb:
         from accessory import show_rgb
         test_img = np.array(rgb)
