@@ -9,7 +9,7 @@ def train_model(features, targets, model_filename):
 
     import numpy as np
     from sklearn.svm import SVC
-    import cPickle 
+    import pickle  
     from sklearn.model_selection import GridSearchCV
 
     # Define the hyperparameter options
@@ -28,7 +28,7 @@ def train_model(features, targets, model_filename):
 
     # Save the model as an object
     with open(model_filename, 'wb') as f:
-        cPickle.dump(clf.best_estimator_,f)
+        pickle.dump(clf.best_estimator_,f)
 
 
 def class_predict(test_features, model_filename):
@@ -42,13 +42,13 @@ def class_predict(test_features, model_filename):
 
     import numpy as np
     from sklearn.svm import SVC
-    import cPickle 
+    import pickle 
 
     # Load the model
     with open(model_filename, 'rb') as f:
-        clf = cPickle.load(f)
+        clf = pickle.load(f)
 
     # Predict class of test samples
-    class = clf.predict(test_features)
+    class_pred = clf.predict(test_features)
 
-    return class
+    return class_pred
