@@ -10,16 +10,25 @@ def train_model(features, targets, model_filename):
     import numpy as np
     from sklearn.svm import SVC
     import cPickle 
+    from sklearn.model_selection import GridSearchCV
+
+    # Define the hyperparameter options
+    params = [{'kernel': ['rbf'], 'gamma': [1e-5, 1e-4, 1e-3, 1e-2],
+               'C': [0.1, 1, 10, 100, 1000]},
+              {'kernel': ['linear'], 'C': [0.1, 1, 10, 100, 1000]}]
 
     # Define the model
     svm = SVC()
+
+    # Grid search to optimize hyperparameters
+    clf = GridSearchCV(svm, params)
     
     # Train the model
-    svm.fit(features, targets)
+    clf.fit(features, targets)
 
     # Save the model as an object
     with open(model_filename, 'wb') as f:
-        cPickle.dump(svm,f)
+        cPickle.dump(clf.best_estimator_,f)
 
 
 def class_predict(test_features, model_filename):
@@ -37,9 +46,9 @@ def class_predict(test_features, model_filename):
 
     # Load the model
     with open(model_filename, 'rb') as f:
-        svm = cPickle.load(f)
+        clf = cPickle.load(f)
 
     # Predict class of test samples
-    class = svm.predict(test_features)
+    class = clf.predict(test_features)
 
     return class
