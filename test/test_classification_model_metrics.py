@@ -9,6 +9,6 @@ def test_roc_auc():
 
     targets = [0,1,0,1]
     soft_predictions = [0.1,0.9,0.2,0.8]
-    results = calc_ROC(targets,soft_predictions,False)
+    #results = calc_ROC(targets,soft_predictions,False)
     auc = calc_AUC(targets,soft_predictions)
     assert(auc == 1)
