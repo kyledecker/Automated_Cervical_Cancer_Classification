@@ -16,3 +16,20 @@ def test_calc_mode():
     expected = 20
 
     assert actual == expected
+
+
+def test_calc_median():
+    from feature_extraction import calc_median
+    import numpy as np
+
+    hist = np.zeros(5)
+    hist[0] = 0.4
+    hist[1] = 0.5
+    hist[2] = 0.2
+    hist[3] = 0.9
+    hist[4] = 0.1
+
+    actual = calc_median(hist)
+    expected = 0
+
+    assert actual == expected
