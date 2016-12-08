@@ -33,3 +33,19 @@ def test_calc_median():
     expected = 0
 
     assert actual == expected
+
+def test_calc_variance():
+    from feature_extraction import calc_variance
+    import numpy as np
+
+    hist = np.zeros(5)
+    hist[0] = 0.4
+    hist[1] = 0.5
+    hist[2] = 0.2
+    hist[3] = 0.9
+    hist[4] = 0.1
+
+    actual = calc_variance(hist)
+    expected = np.std([0.4, 0.5, 0.2, 0.9, 0.1])
+
+    assert actual == expected

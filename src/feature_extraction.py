@@ -82,3 +82,28 @@ def calc_median(hist):
     median = np.argsort(hist)[len(hist)//2]
 
     return median
+
+def calc_variance(hist):
+    """
+    calculate variance from histogram
+
+    :param hist: histogram values for 0-255
+    :return: variance
+    """
+    import numpy as np
+
+    if np.ndim(hist) > 1:
+        msg = 'ERROR [calc_variance] Input must be 1D array of histogram ' \
+              'frequency values.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+    if np.size(hist) > 256:
+        msg = 'ERROR [calc_variance] Input histogram data has > 256 bins.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    variance = np.std(hist)
+
+    return variance
