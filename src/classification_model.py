@@ -5,6 +5,7 @@ def train_model(features, targets, model_filename):
     :param features: numpy array of n features for m samples
     :param targets: numpy vector of m targets
     :param model_filename: filename to save the model to
+    :return: svm model with best cross-validation results
     """
 
     import numpy as np
@@ -18,7 +19,7 @@ def train_model(features, targets, model_filename):
               {'kernel': ['linear'], 'C': [0.1, 1, 10, 100, 1000]}]
 
     # Define the model
-    svm = SVC()
+    svm = SVC(probability=True)
 
     # Grid search to optimize hyperparameters
     clf = GridSearchCV(svm, params)
@@ -29,6 +30,8 @@ def train_model(features, targets, model_filename):
     # Save the model as an object
     with open(model_filename, 'wb') as f:
         pickle.dump(clf.best_estimator_,f)
+
+    return clf.best_estimator_
 
 
 def class_predict(test_features, model_filename):

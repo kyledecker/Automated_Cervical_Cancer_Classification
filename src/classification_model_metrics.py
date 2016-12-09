@@ -21,7 +21,10 @@ def calc_ROC(targets, soft_predictions, plot_ROC=False):
     if plot_ROC == True:
         plt.plot(fpr, tpr)
         plt.plot([0, 1], [0, 1], "r--", alpha=.5)
-        plt.axis((-0.1, 1.1, -0.1, 1.1))
+        plt.axis((-0.01, 1.01, -0.01, 1.01))
+        plt.ylabel('True Positive Rate')
+        plt.xlabel('False Positive Rate')
+        plt.title('ROC for SVM Model on Test Set')
         plt.show()
 
     return [fpr, tpr]
