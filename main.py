@@ -17,7 +17,7 @@ if __name__ == "__main__":
     if (train == True):
         train_files = os.listdir('./TrainingData')
         path = os.getcwd() + '/TrainingData/'
-        num_features = 4
+        num_features = 2
         data = np.zeros((len(train_files),num_features+1))
         for i in range(len(train_files)):
             rgb = read_tiff(filename=(path+train_files[i]))
@@ -31,7 +31,8 @@ if __name__ == "__main__":
             blue_median = calc_median(bh)
             blue_variance = calc_variance(bh)
             
-            features = np.append(green_otsu, [blue_mode,blue_median,blue_variance])
+            #features = np.append(green_otsu, [blue_mode,blue_median,blue_variance])
+            features = np.append(green_otsu, [blue_mode])
             if ('dys' in train_files[i]):
                 target = 1
             else:
@@ -62,7 +63,8 @@ if __name__ == "__main__":
         blue_median = calc_median(bh)
         blue_variance = calc_variance(bh)
 
-        features = np.append(green_otsu, [blue_mode,blue_median,blue_variance])
+        #features = np.append(green_otsu, [blue_mode,blue_median,blue_variance])
+        features = np.append(green_otsu, [blue_mode])
         y_pred = class_predict(features.reshape(1,-1),'basic_model.pkl')
         if (y_pred == 1):
             print("SVM Classification Result = Dysplasia")
