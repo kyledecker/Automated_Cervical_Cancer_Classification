@@ -7,4 +7,5 @@
 *.tif
 *~
 log.txt
+TrainingData/
 _build/
