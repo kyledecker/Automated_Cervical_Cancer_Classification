@@ -12,7 +12,7 @@ if __name__ == "__main__":
     from sklearn.model_selection import train_test_split
 
     verb = False
-    train = True
+    train = False
 
     if (train == True):
         train_files = os.listdir('./TrainingData')
@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
         # Split data in to training and testing
         x_train, x_test, y_train, y_test = train_test_split(data[:,1:],data[:,0],
-                                                            test_size = 0.3)
+                                                            test_size = 0.4)
         # Train SVM
         train_model(x_train,y_train,'basic_model.pkl')
         # Perform prediction on test set
@@ -50,18 +50,24 @@ if __name__ == "__main__":
         accuracy = (1 - misclassification) * 100
         print ('Classification accuracy = %f ' % accuracy)
         
-        
-        
-        
-
     else:
-        rgb = read_tiff(filename='./test/ExampleAbnormalCervix.tif')
+        unknown_file = './test/ExampleAbnormalCervix.tif'
+        rgb = read_tiff(filename= unknown_file)
         rgb = rgb_preprocess(rgb, verb=verb, exclude_bg=True, upper_lim=(0,  0,
                                                                          240))
         rh, gh, bh = rgb_histogram(rgb, verb=verb, omit=(0, 255))
 
         green_otsu = otsu_threshold(rgb[:, :, 1], verb=verb)
         blue_mode = calc_mode(bh)
+        blue_median = calc_median(bh)
+        blue_variance = calc_variance(bh)
+
+        features = np.append(green_otsu, [blue_mode,blue_median,blue_variance])
+        y_pred = class_predict(features.reshape(1,-1),'basic_model.pkl')
+        if (y_pred == 1):
+            print("SVM Classification Result = Dysplasia")
+        else:
+            print("SVM Classification Result = Healthy")
 
         msg = "G channel Otsu's threshold = %d" % green_otsu
         logging.info(msg)
