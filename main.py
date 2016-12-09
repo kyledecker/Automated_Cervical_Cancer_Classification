@@ -10,9 +10,10 @@ if __name__ == "__main__":
     from feature_extraction import *
     from classification_model import *
     from sklearn.model_selection import train_test_split
+    from classification_model_metrics import *
 
     verb = False
-    train = False
+    train = True
 
     if (train == True):
         train_files = os.listdir('./TrainingData')
@@ -36,20 +37,26 @@ if __name__ == "__main__":
             if ('dys' in train_files[i]):
                 target = 1
             else:
-                target = 0
+                target = -1
             data[i] = np.append(target, [features])
 
         # Split data in to training and testing
         x_train, x_test, y_train, y_test = train_test_split(data[:,1:],data[:,0],
-                                                            test_size = 0.4)
+                                                            test_size = 0.3)
         # Train SVM
-        train_model(x_train,y_train,'basic_model.pkl')
+        svm = train_model(x_train,y_train,'basic_model.pkl')
         # Perform prediction on test set
         y_pred = class_predict(x_test,'basic_model.pkl')
 
         misclassification = len(np.nonzero(y_pred - y_test)) / len(y_test)
         accuracy = (1 - misclassification) * 100
-        print ('Classification accuracy = %f ' % accuracy)
+        print ('Classification accuracy on test set = %f ' % accuracy)
+        
+        soft_predictions = svm.predict_proba(x_test)
+        roc = calc_ROC(y_test, soft_predictions[:,1], True)
+        auc = calc_AUC(y_test, soft_predictions[:,1])
+
+        print ('AUC on test set = %f ' % auc)
         
     else:
         unknown_file = './test/ExampleAbnormalCervix.tif'
