@@ -34,6 +34,7 @@ def test_calc_median():
 
     assert actual == expected
 
+
 def test_calc_variance():
     from feature_extraction import calc_variance
     import numpy as np
@@ -49,3 +50,16 @@ def test_calc_variance():
     expected = np.std([0.4, 0.5, 0.2, 0.9, 0.1])
 
     assert actual == expected
+
+
+def test_extract_features():
+    from feature_extraction import extract_features
+    import numpy as np
+
+    img = np.zeros((20, 20, 3))
+    img[1, 1, :] = (0, 4, 4)
+
+    actual = extract_features(img, (0, 1), 0, (0, 1, 2))
+    expected = np.zeros(6)
+
+    assert np.array_equal(actual, expected)
