@@ -2,6 +2,21 @@ import sys
 import logging
 
 
+def calc_accuracy(targets, predictions):
+    """
+    determine classification accuracy
+
+    :param targets: numpy vector of m true targets
+    :param predictions: numpy vector of m predicted targets
+    :return: classification accuracy
+    """
+    import numpy as np
+
+    accuracy = np.sum(np.subtract(targets, predictions) == 0) / len(targets)
+
+    return accuracy
+
+
 def calc_ROC(targets, soft_predictions, plot_ROC=False):
     """
     determine ROC of SVM classifier
