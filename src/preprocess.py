@@ -146,10 +146,11 @@ def process_rgb_histogram(hist, omit=[]):
     :return: normalized histogram (np.array)
     """
     import numpy as np
+    from accessory import get_iterable
 
     hist = np.array(hist).astype('float')
 
-    for ii in omit:
+    for ii in get_iterable(omit):
         hist[ii] = 0
 
     tot_pix = sum(hist)
