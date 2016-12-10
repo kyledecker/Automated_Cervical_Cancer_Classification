@@ -13,13 +13,13 @@ if __name__ == "__main__":
     from classification_model_metrics import *
 
     verb = False
-    train = True
+    train = False
 
     data_path = os.getcwd() + '/TrainingData/'
     median_feats = ''
-    variance_feats = ''
-    mode_feats = 'b'
-    otsu_feats = 'g'
+    variance_feats = 'rgb'
+    mode_feats = 'bg'
+    otsu_feats = ''
     omit_pix = [0, 255]
 
     unknown_file = './test/ExampleAbnormalCervix.tif'
