@@ -24,3 +24,23 @@ def test_get_iterable():
     expected = vec
 
     assert np.array_equal(actual, expected)
+
+
+def test_rgbstring2index():
+    from accessory import rgbstring2index
+    import numpy as np
+
+    actual = rgbstring2index('rgb')
+    expected = [0, 1, 2]
+
+    assert np.array_equal(actual, expected)
+
+    actual = rgbstring2index('rb')
+    expected = [0, 2]
+
+    assert np.array_equal(actual, expected)
+
+    actual = rgbstring2index('b')
+    expected = [2]
+
+    assert np.array_equal(actual, expected)

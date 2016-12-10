@@ -125,78 +125,77 @@ def calc_variance(img, omit=[]):
     return variance
 
 
-def extract_features(rgb, median_dims=None, variance_dims=None,
-                     mode_dims=None, otsu_dims=None,
+def extract_features(rgb, median_ch='', variance_ch='',
+                     mode_ch='', otsu_ch='',
                      omit=[], verb=False):
     """
     extract specific image features from rgb pixel array
 
     :param rgb: RGB pixel array
-    :param median_dims: color channel indices to extract median feature
-    :param variance_dims: color channel indices to extract variance feature
-    :param mode_dims: color channel indices to extract mode feature
-    :param otsu_dims: color channel indices to extract Otsu threshold
+    :param median_ch: color channels to extract median feature
+    :param variance_ch: color channels to extract variance feature
+    :param mode_ch: color channels to extract mode feature
+    :param otsu_ch: color channels to extract Otsu threshold
     :param omit: pixel values to omit from feature extraction
     :param verb: enable verbose mode to output intermediate figures
     :return: feature array (np.array)
     """
     from preprocess import rgb_histogram
-    from accessory import get_iterable
+    from accessory import rgbstring2index
     import numpy as np
 
     rh, gh, bh = rgb_histogram(rgb, verb=verb, omit=omit)
     hists = (rh, gh, bh)
 
-    if median_dims is not None:
-        try:
-            median_feats = [calc_median(rgb[:, :, ii], omit) for ii in
-                            get_iterable(median_dims)]
-        except IndexError:
-            msg = 'ERROR [extract_features] Color channel index for median ' \
-                  'feature out of bounds (0:R, 1:G, 2:B).'
-            logging.error(msg)
-            print(msg)
-            sys.exit()
-    else:
+    median_idx = rgbstring2index(median_ch)
+    variance_idx = rgbstring2index(variance_ch)
+    mode_idx = rgbstring2index(mode_ch)
+    otsu_idx = rgbstring2index(otsu_ch)
+
+    try:
+        median_feats = [calc_median(rgb[:, :, ii], omit) for ii in median_idx]
+    except IndexError:
+        msg = 'ERROR [extract_features] Color channel index for median ' \
+              'feature out of bounds (0:R, 1:G, 2:B).'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+    except TypeError:
         median_feats = []
 
-    if variance_dims is not None:
-        try:
-            variance_feats = [calc_variance(rgb[:, :, ii], omit) for ii in
-                              get_iterable(variance_dims)]
-        except IndexError:
-            msg = 'ERROR [extract_features] Color channel index for var ' \
-                  'feature out of bounds (0:R, 1:G, 2:B).'
-            logging.error(msg)
-            print(msg)
-            sys.exit()
-    else:
+    try:
+        variance_feats = [calc_variance(rgb[:, :, ii], omit) for ii in
+                          variance_idx]
+    except IndexError:
+        msg = 'ERROR [extract_features] Color channel index for var ' \
+              'feature out of bounds (0:R, 1:G, 2:B).'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+    except TypeError:
         variance_feats = []
 
-    if mode_dims is not None:
-        try:
-            mode_feats = [calc_mode(hists[ii], omit) for ii in get_iterable(
-                mode_dims)]
-        except IndexError:
-            msg = 'ERROR [extract_features] Color channel index for mode ' \
-                  'feature out of bounds (0:R, 1:G, 2:B).'
-            logging.error(msg)
-            print(msg)
-            sys.exit()
-    else:
+    try:
+        mode_feats = [calc_mode(hists[ii], omit) for ii in mode_idx]
+    except IndexError:
+        msg = 'ERROR [extract_features] Color channel index for mode ' \
+              'feature out of bounds (0:R, 1:G, 2:B).'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+    except TypeError:
         mode_feats = []
 
-    if otsu_dims is not None:
-        try:
-            otsu_feats = [otsu_threshold(rgb[:, :, ii], omit, verb=verb) for
-                          ii in get_iterable(otsu_dims)]
-        except IndexError:
-            msg = 'ERROR [extract_features] Color channel index for Otsu ' \
-                  'threshold out of bounds (0:R, 1:G, 2:B).'
-            logging.error(msg)
-            print(msg)
-            sys.exit()
-    else:
+    try:
+        otsu_feats = [otsu_threshold(rgb[:, :, ii], omit, verb=verb) for
+                      ii in otsu_idx]
+    except IndexError:
+        msg = 'ERROR [extract_features] Color channel index for Otsu ' \
+              'threshold out of bounds (0:R, 1:G, 2:B).'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+    except TypeError:
         otsu_feats = []
 
     features = median_feats
