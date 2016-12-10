@@ -33,16 +33,18 @@ def calc_mode(hist, omit=[]):
     return mode
 
 
-def otsu_threshold(img, verb=False):
+def otsu_threshold(img, omit=[], verb=False):
     """
     calculate the global otsu's threshold for image
 
     :param img: 2D array of pixel values
+    :param omit: pixel values to omit from calculation
     :param verb: verbose mode to display threshold image
     :return: threshold (float)
     """
     from skimage.filters import threshold_otsu
     import numpy as np
+    from accessory import get_iterable
 
     if np.ndim(img) > 2:
         msg = 'ERROR [otsu_threshold] Input image must be 2D grayscale (not ' \
@@ -52,6 +54,9 @@ def otsu_threshold(img, verb=False):
         sys.exit()
 
     # set omitted pixel values as 0
+    for omit_idx in get_iterable(omit):
+        img[img == omit_idx] = np.nan
+
     img[np.isnan(img)] = 0
     threshold_global_otsu = threshold_otsu(img)
 
@@ -160,7 +165,7 @@ def extract_features(rgb, median_dims=None, variance_dims=None,
             variance_feats = [calc_variance(rgb[:, :, ii], omit) for ii in
                               get_iterable(variance_dims)]
         except IndexError:
-            msg = 'ERROR [extract_features] Color channel index for variance ' \
+            msg = 'ERROR [extract_features] Color channel index for var ' \
                   'feature out of bounds (0:R, 1:G, 2:B).'
             logging.error(msg)
             print(msg)
@@ -183,8 +188,8 @@ def extract_features(rgb, median_dims=None, variance_dims=None,
 
     if otsu_dims is not None:
         try:
-            otsu_feats = [otsu_threshold(rgb[:, :, ii]) for ii in
-                          get_iterable(otsu_dims)]
+            otsu_feats = [otsu_threshold(rgb[:, :, ii], omit, verb=verb) for
+                          ii in get_iterable(otsu_dims)]
         except IndexError:
             msg = 'ERROR [extract_features] Color channel index for Otsu ' \
                   'threshold out of bounds (0:R, 1:G, 2:B).'
