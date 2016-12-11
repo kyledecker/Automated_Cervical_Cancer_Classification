@@ -13,7 +13,7 @@ if __name__ == "__main__":
     from classification_model_metrics import *
 
     verb = False
-    train = False
+    train = True
 
     data_path = os.getcwd() + '/TrainingData/'
     median_feats = ''
@@ -66,13 +66,15 @@ if __name__ == "__main__":
         # Perform prediction on test set
         y_pred = class_predict(x_test, 'basic_model.pkl')
 
-        misclassification = len(np.nonzero(y_pred - y_test)) / len(y_test)
-        accuracy = (1 - misclassification) * 100
-        print('Classification accuracy on test set = %f ' % accuracy)
+        accuracy = calc_accuracy(y_test, y_pred)
+        print('Classification accuracy on test set = %1f ' % accuracy)
         
         soft_predictions = svm.predict_proba(x_test)
         roc = calc_ROC(y_test, soft_predictions[:, 1], True)
         auc = calc_AUC(y_test, soft_predictions[:, 1])
+
+        gen_confusion_matrix(y_test, y_pred, ('Dysplasia', 'Healthy'),
+                             verb=True)
 
         print('AUC on test set = %f ' % auc)
         
