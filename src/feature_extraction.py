@@ -87,7 +87,8 @@ def calc_median(img, omit=[]):
         print(msg)
         sys.exit()
 
-    pixels = np.ravel(img)
+    pixels = np.ravel(np.array(img))
+    pixels = pixels.astype('float')
     for omit_idx in get_iterable(omit):
         pixels[pixels == omit_idx] = np.nan
 
@@ -115,7 +116,8 @@ def calc_variance(img, omit=[]):
         print(msg)
         sys.exit()
 
-    pixels = np.ravel(img)
+    pixels = np.ravel(np.array(img))
+    pixels = pixels.astype('float')
     for omit_idx in get_iterable(omit):
         pixels[pixels == omit_idx] = np.nan
 
