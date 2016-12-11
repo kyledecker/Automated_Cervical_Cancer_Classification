@@ -18,6 +18,26 @@ def calc_accuracy(targets, predictions):
     return accuracy
 
 
+def calc_f1_score(targets, predictions):
+    """
+    determine F1 score
+
+    :param targets: numpy vector of m true targets
+    :param predictions: numpy vector of m predicted targets
+    :return: F1 score
+    """
+    import numpy as np
+
+    true_pos = np.sum((targets == 1) & (predictions == 1)) / np.sum(targets == 1)
+    false_pos = np.sum((targets == -1) & (predictions == 1)) / np.sum(targets == -1)
+    false_neg = np.sum((targets == 1) & (predictions == -1)) / np.sum(targets == 1)
+    precision = true_pos / (true_pos + false_pos)
+    recall = true_pos / (true_pos + false_neg)
+    f1 = 2 * (precision * recall) / (precision + recall)
+
+    return f1
+
+
 def calc_ROC(targets, soft_predictions, plot_ROC=False):
     """
     determine ROC of SVM classifier
