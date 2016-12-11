@@ -69,3 +69,24 @@ def rgbstring2index(rgbstring):
     idx = idx.astype('int')
 
     return get_iterable(idx)
+
+
+def percent_color(rgb, color):
+    """
+    calculate percent of RGB color in image (black pixels excluded)
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param color: RGB color to calculate percentage of
+    :return: percent of color in image
+    """
+    import numpy as np
+
+    nCol = np.sum((rgb[:, :, 0] == color[0]) & (rgb[:, :, 1] == color[1]) &
+                  (rgb[:, :, 2] == color[2]))
+
+    nTot = np.sum(~((rgb[:, :, 0] == 0) & (rgb[:, :, 1] == 0) &
+                    (rgb[:, :, 2] == 0)))
+
+    percent = 100*nCol/nTot
+
+    return percent

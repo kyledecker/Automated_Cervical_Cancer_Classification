@@ -137,11 +137,8 @@ def nan_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     return rgb
 
 
-def nan_yellow_pixels(rgb,
-                         rlims=[200, 255],
-                         glims=[150, 255],
-                         blims=[0, 150],
-                         verb=False):
+def nan_yellow_pixels(rgb, rlims=[200, 255], glims=[150, 255], blims=[0, 150],
+                      gb_delta=30, verb=False):
     """
     set pixel values in range to NaN with restriction that B < G
 
@@ -149,12 +146,11 @@ def nan_yellow_pixels(rgb,
     :param rlims: minimum and maximum of R pixel values
     :param glims: maximum and maximum of G pixel values
     :param blims: maximum and maximum of B pixel values
+    :param gb_delta: minimum difference between G and B pixel values
     :param verb: verbose mode to show excluded pixels in gray, default False
     :return: RGB pixel array (np.array)
     """
     import numpy as np
-
-    bg_tol = 50
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
@@ -171,7 +167,7 @@ def nan_yellow_pixels(rgb,
         (rgb[:, :, 2] >= blims[0]) &
         (rgb[:, :, 2] <= blims[1]) &
         (rgb[:, :, 1] <= rgb[:, :, 0]) &
-        (rgb[:, :, 2] < rgb[:, :, 1]-bg_tol), :] = (np.nan, np.nan, np.nan)
+        (rgb[:, :, 2] < rgb[:, :, 1]-gb_delta), :] = (np.nan, np.nan, np.nan)
 
     if verb:
         from accessory import show_rgb
