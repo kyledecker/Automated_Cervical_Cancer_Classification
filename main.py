@@ -67,14 +67,12 @@ if __name__ == "__main__":
         y_pred = class_predict(x_test, 'basic_model.pkl')
 
         accuracy = calc_accuracy(y_test, y_pred)
-        print('Classification accuracy on test set = %f ' % accuracy)
+        print('Classification accuracy on test set = %1f ' % accuracy)
         
         soft_predictions = svm.predict_proba(x_test)
         roc = calc_ROC(y_test, soft_predictions[:, 1], True)
         auc = calc_AUC(y_test, soft_predictions[:, 1])
 
-        print(y_test)
-        print(y_pred)
         gen_confusion_matrix(y_test, y_pred, ('Dysplasia', 'Healthy'),
                              verb=True)
 

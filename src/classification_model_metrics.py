@@ -12,7 +12,8 @@ def calc_accuracy(targets, predictions):
     """
     import numpy as np
 
-    accuracy = np.sum(np.subtract(targets, predictions) == 0) / len(targets)
+    accuracy = 100*np.sum(np.subtract(targets, predictions) == 0) / len(
+        targets)
 
     return accuracy
 
@@ -33,7 +34,7 @@ def calc_ROC(targets, soft_predictions, plot_ROC=False):
 
     fpr, tpr, thresh = roc_curve(targets, soft_predictions)
     
-    if plot_ROC == True:
+    if plot_ROC:
         plt.plot(fpr, tpr)
         plt.plot([0, 1], [0, 1], "r--", alpha=.5)
         plt.axis((-0.01, 1.01, -0.01, 1.01))
@@ -121,4 +122,48 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
     plt.ylabel('True')
     plt.xlabel('Predicted')
+    plt.show()
+
+
+def plot_features(features, targets, labels):
+    """
+    visualize 2D features for samples from 2 known classes
+
+    :param features: N x 2 sets of feature values
+    :param targets: target labels corresponding to each set of features
+    :param labels: labels for each feature
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    target_types = np.unique(targets)
+    if len(target_types) > 2:
+        msg = 'ERROR [plot_features] Function only compatible with 2 targets.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    if np.shape(features)[1] > 2:
+        msg = 'ERROR [plot_features] Function only compatible with 2 features.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    if np.shape(features)[0] != len(targets):
+        msg = 'ERROR [plot_features] Mismatch between number of target ' \
+              'labels and feature sets.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    features0 = features[targets == target_types[0], :]
+    features1 = features[targets == target_types[1], :]
+
+    h0 = plt.scatter(features0[:, 0], features0[:, 1], marker='o', c='red',
+                     label=target_types[0])
+    h1 = plt.scatter(features1[:, 0], features1[:, 1], marker='o', c='blue',
+                     label=target_types[1])
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+    plt.legend(handles=[h0, h1])
     plt.show()

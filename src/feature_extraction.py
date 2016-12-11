@@ -120,7 +120,7 @@ def calc_variance(img, omit=[]):
 
     pixels = np.ravel(img)
     pixels = pixels[np.isfinite(pixels)]
-    variance = np.var(pixels)
+    variance = np.std(pixels)
 
     return variance
 
