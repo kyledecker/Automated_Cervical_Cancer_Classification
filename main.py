@@ -12,31 +12,41 @@ if __name__ == "__main__":
     from sklearn.model_selection import train_test_split
     from classification_model_metrics import *
     from parse_cli import parse_cli
+    import pickle
 
-    # gather argparse inputs
+    # gather general CLI
     args = parse_cli()
     verb = args.v
     train = args.t
-    split_train_test = args.splitting
-    data_path = args.t_dir
-    median_feats = args.med_feats
-    variance_feats = args.var_feats
-    mode_feats = args.mode_feats
-    otsu_feats = args.otsu_feats
-    unknown_file = args.f
     model_filename = args.model
-    pct_yellow = args.ypct_feat
+    featset_filename = args.featset
 
+    # pixels to omit from feature extraction
     omit_pix = [0, 255]
-
-    n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
-    if pct_yellow:
-        n_feat += 1
-
     # threshold for glare filter
     b_thresh = 240
 
     if train:
+        # gather training specific CLI
+        split_train_test = args.splitting
+        data_path = args.t_dir
+        median_feats = args.med_feats
+        variance_feats = args.var_feats
+        mode_feats = args.mode_feats
+        otsu_feats = args.otsu_feats
+        pct_yellow = args.ypct_feat
+
+        feature_types = {'med': median_feats,
+                         'var': variance_feats,
+                         'mode': mode_feats,
+                         'otsu': otsu_feats,
+                         'ypct': pct_yellow}
+        pickle.dump(feature_types, open(featset_filename, 'wb'))
+
+        n_feat = len(median_feats + variance_feats + mode_feats + otsu_feats)
+        if pct_yellow:
+            n_feat += 1
+
         train_files = os.listdir(data_path)
         n_train = len(train_files)
 
@@ -55,11 +65,11 @@ if __name__ == "__main__":
                                  upper_lim=(0, 0, b_thresh))
 
             features = extract_features(rgb,
-                                        median_ch=median_feats,
-                                        variance_ch=variance_feats,
-                                        mode_ch=mode_feats,
-                                        otsu_ch=otsu_feats,
-                                        pct_yellow=pct_yellow,
+                                        median_ch=feature_types['med'],
+                                        variance_ch=feature_types['var'],
+                                        mode_ch=feature_types['mode'],
+                                        otsu_ch=feature_types['otsu'],
+                                        pct_yellow=feature_types['ypct'],
                                         omit=omit_pix,
                                         verb=verb)
 
@@ -109,17 +119,22 @@ if __name__ == "__main__":
                              verb=True)
         
     else:
+        # gather prediction specific CLI
+        unknown_file = args.f
+
+        feature_types = pickle.load(open(featset_filename, 'rb'))
+
         rgb = read_tiff(filename=unknown_file)
         rgb = rgb_preprocess(rgb, verb=verb, exclude_bg=True,
                              upper_lim=(0, 0, b_thresh))
 
         features = extract_features(rgb,
-                                    median_ch=median_feats,
-                                    variance_ch=variance_feats,
-                                    mode_ch=mode_feats,
-                                    otsu_ch=otsu_feats,
-                                    pct_yellow=pct_yellow,
-                                    omit=[0, 255],
+                                    median_ch=feature_types['med'],
+                                    variance_ch=feature_types['var'],
+                                    mode_ch=feature_types['mode'],
+                                    otsu_ch=feature_types['otsu'],
+                                    pct_yellow=feature_types['ypct'],
+                                    omit=omit_pix,
                                     verb=verb)
 
         y_pred = class_predict(features.reshape(1, -1), model_filename)
