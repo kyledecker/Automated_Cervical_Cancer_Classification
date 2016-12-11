@@ -19,7 +19,7 @@ if __name__ == "__main__":
         rgb = read_tiff(filename=data_path+file)
 
         if preproc:
-            rgb = rgb_preprocess(rgb, exclude_bg=False,
+            rgb = rgb_preprocess(rgb, exclude_bg=True,
                                  upper_lim=(0, 0, 240))
 
         percent = calc_pct_yellow(rgb)

@@ -25,10 +25,13 @@ if __name__ == "__main__":
     otsu_feats = args.otsu_feats
     unknown_file = args.f
     model_filename = args.model
+    pct_yellow = args.ypct_feat
 
     omit_pix = [0, 255]
 
     n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
+    if pct_yellow:
+        n_feat += 1
 
     # threshold for glare filter
     b_thresh = 240
@@ -50,9 +53,11 @@ if __name__ == "__main__":
                                         variance_ch=variance_feats,
                                         mode_ch=mode_feats,
                                         otsu_ch=otsu_feats,
+                                        pct_yellow=pct_yellow,
                                         omit=omit_pix,
                                         verb=verb)
 
+            print(features[-1])
             feature_array[i, :] = features
 
             if 'dys' in train_files[i]:
@@ -102,6 +107,7 @@ if __name__ == "__main__":
                                     variance_ch=variance_feats,
                                     mode_ch=mode_feats,
                                     otsu_ch=otsu_feats,
+                                    pct_yellow=pct_yellow,
                                     omit=[0, 255],
                                     verb=verb)
 

@@ -65,6 +65,12 @@ def parse_cli():
                      help="Color channels to extract otsu feature from <rgb>",
                      default='')
 
+    par.add_argument("--yellow_feature",
+                     dest="ypct_feat",
+                     help="Use percent yellow pixel feature <True/False>",
+                     type=str,
+                     default='False')
+
     par.add_argument("--log",
                      dest="l",
                      help="Logging Level <DEBUG, INFO, WARNING, ERROR>",
@@ -74,6 +80,7 @@ def parse_cli():
 
     args.v = parse_bool(args.v)
     args.t = parse_bool(args.t)
+    args.ypct_feat = parse_bool(args.ypct_feat)
     args.splitting = parse_bool(args.splitting)
 
     return args

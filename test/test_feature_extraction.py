@@ -56,8 +56,8 @@ def test_extract_features():
     img[:, :, 1] = g
     img[:, :, 2] = b
 
-    actual = extract_features(img, 'gb', 'r', 'rg')
-    expected = [np.median(g), np.median(b), np.std(r), 5, 0]
+    actual = extract_features(img, 'gb', 'r', 'rg', pct_yellow=True)
+    expected = [np.median(g), np.median(b), np.std(r), 5, 0, 0]
 
     assert np.array_equal(actual, expected)
 
