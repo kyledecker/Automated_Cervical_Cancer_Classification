@@ -13,7 +13,7 @@ if __name__ == "__main__":
     from classification_model_metrics import *
 
     verb = False
-    train = False
+    train = True
     split_train_test = False
 
     data_path = os.getcwd() + '/TrainingData/'
@@ -76,6 +76,9 @@ if __name__ == "__main__":
 
         accuracy = calc_accuracy(y_test, y_pred)
         print('Classification accuracy on test set = %1f ' % accuracy)
+
+        f1 = calc_f1_score(y_test, y_pred)
+        print('F1-score on test set = %1f ' % f1)
         
         soft_predictions = svm.predict_proba(x_test)
         roc = calc_ROC(y_test, soft_predictions[:, 1], True)
