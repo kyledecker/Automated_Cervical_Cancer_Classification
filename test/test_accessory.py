@@ -68,3 +68,12 @@ def test_percent_color():
     expected = 100/99
 
     assert np.array_equal(actual, expected)
+
+
+def test_create_dir():
+    from accessory import create_dir
+
+    filepath = './test_folder/'
+    create_dir(filepath)
+    assert os.path.exists(filepath)
+    os.rmdir(filepath)
