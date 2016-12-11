@@ -125,6 +125,29 @@ def calc_variance(img, omit=[]):
     return variance
 
 
+def calc_pct_yellow(rgb):
+    """
+    calculate percentage of yellow pixels (excluding NaN and black pixels)
+
+    :param rgb: RGB pixel array
+    :return: percent of color in image
+    """
+    import numpy as np
+    from accessory import color_nans, percent_color
+    from preprocess import nan_yellow_pixels
+
+    y_label = [255, 255, 0]
+    recolored_rgb = np.array(rgb)
+
+    recolored_rgb = color_nans(recolored_rgb, [0, 0, 0])
+    recolored_rgb = nan_yellow_pixels(recolored_rgb)
+    recolored_rgb = color_nans(recolored_rgb, color=y_label)
+
+    pct = percent_color(recolored_rgb, y_label)
+
+    return pct
+
+
 def extract_features(rgb, median_ch='', variance_ch='',
                      mode_ch='', otsu_ch='',
                      omit=[], verb=False):
