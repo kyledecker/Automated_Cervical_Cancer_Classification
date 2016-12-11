@@ -26,6 +26,26 @@ def get_iterable(x):
         return x,
 
 
+def color_nans(rgb, color=[0, 0, 255], verb=False):
+    """
+    assign color to NaN pixels in image
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param color: RGB color used in place of NaN pixel
+    :param verb: verbose mode to show colored image, default False
+    :return: RGB pixel array (np.array)
+    """
+    import numpy as np
+
+    rgb[np.isnan(rgb[:, :, 0]), :] = color
+
+    if verb:
+        from accessory import show_rgb
+        show_rgb(rgb)
+
+    return rgb
+
+
 def rgbstring2index(rgbstring):
     """
     converts RGB string into array containing corresponding channel indices

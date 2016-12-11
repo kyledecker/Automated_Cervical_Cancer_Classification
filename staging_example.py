@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath('./src/'))
 
 if __name__ == "__main__":
     from preprocess import *
+    from accessory import color_nans
 
     preproc = True
 
@@ -17,7 +18,12 @@ if __name__ == "__main__":
         rgb = read_tiff(filename=data_path+file)
 
         if preproc:
-            rgb = rgb_preprocess(rgb, verb=False, exclude_bg=True,
-                                 upper_lim=(0, 0, 100))
+            rgb = rgb_preprocess(rgb, exclude_bg=True)
+            color_nans(rgb, [0, 0, 0])
 
-        rgb = remove_yellow_pixels(rgb, tol=5, verb=True)
+            rgb = rgb_preprocess(rgb, exclude_bg=False,
+                                 upper_lim=(0, 0, 240))
+            color_nans(rgb)
+
+        rgb = nan_yellow_pixels(rgb)
+        color_nans(rgb, color=[255, 255, 0], verb=True)

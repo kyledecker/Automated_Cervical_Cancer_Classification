@@ -137,16 +137,24 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     return rgb
 
 
-def remove_yellow_pixels(rgb, tol=10, verb=False):
+def nan_yellow_pixels(rgb,
+                         rlims=[200, 255],
+                         glims=[150, 255],
+                         blims=[0, 150],
+                         verb=False):
     """
-    identify yellow pixels and convert to NaN
+    set pixel values in range to NaN with restriction that B < G
 
     :param rgb: RGB pixel array with dimensions: height x width x RGB
-    :param tol: tolerance of R pixel value from max 255
+    :param rlims: minimum and maximum of R pixel values
+    :param glims: maximum and maximum of G pixel values
+    :param blims: maximum and maximum of B pixel values
     :param verb: verbose mode to show excluded pixels in gray, default False
     :return: RGB pixel array (np.array)
     """
     import numpy as np
+
+    bg_tol = 50
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
@@ -156,8 +164,14 @@ def remove_yellow_pixels(rgb, tol=10, verb=False):
         print(msg)
         sys.exit()
 
-    rgb[(rgb[:, :, 0] > 255-tol) &
-        (rgb[:, :, 2] < rgb[:, :, 1]), :] = (np.nan, np.nan, np.nan)
+    rgb[(rgb[:, :, 0] >= rlims[0]) &
+        (rgb[:, :, 0] <= rlims[1]) &
+        (rgb[:, :, 1] >= glims[0]) &
+        (rgb[:, :, 1] <= glims[1]) &
+        (rgb[:, :, 2] >= blims[0]) &
+        (rgb[:, :, 2] <= blims[1]) &
+        (rgb[:, :, 1] <= rgb[:, :, 0]) &
+        (rgb[:, :, 2] < rgb[:, :, 1]-bg_tol), :] = (np.nan, np.nan, np.nan)
 
     if verb:
         from accessory import show_rgb
