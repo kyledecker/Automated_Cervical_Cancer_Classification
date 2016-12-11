@@ -37,7 +37,7 @@ def test_calc_variance():
     data = [ii for ii in range(0, 4)]
 
     actual = calc_variance(data, omit=(0,))
-    expected = np.var([1, 2, 3])
+    expected = np.std([1, 2, 3])
 
     assert actual == expected
 
@@ -57,7 +57,7 @@ def test_extract_features():
     img[:, :, 2] = b
 
     actual = extract_features(img, 'gb', 'r', 'rg')
-    expected = [np.median(g), np.median(b), np.var(r), 5, 0]
+    expected = [np.median(g), np.median(b), np.std(r), 5, 0]
 
     assert np.array_equal(actual, expected)
 

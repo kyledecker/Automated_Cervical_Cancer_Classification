@@ -13,7 +13,8 @@ if __name__ == "__main__":
     from classification_model_metrics import *
 
     verb = False
-    train = True
+    train = False
+    split_train_test = False
 
     data_path = os.getcwd() + '/TrainingData/'
     median_feats = ''
@@ -56,9 +57,16 @@ if __name__ == "__main__":
             else:
                 target_array[i] = -1
 
-        # Split data in to training and testing
-        x_train, x_test, y_train, y_test \
-            = train_test_split(feature_array, target_array, test_size=0.3)
+        if split_train_test:
+            # Split data in to training and testing (best practice)
+            x_train, x_test, y_train, y_test \
+                = train_test_split(feature_array, target_array, test_size=0.3)
+        else:
+            # Use same data to train and test SVM
+            x_train = feature_array
+            y_train = target_array
+            x_test = feature_array
+            y_test = target_array
 
         # Train SVM
         svm = train_model(x_train, y_train, 'basic_model.pkl')

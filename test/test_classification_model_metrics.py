@@ -9,7 +9,7 @@ def test_calc_accuracy():
     pred = [1, -1, -1, 1, 1]
 
     actual = calc_accuracy(true, pred)
-    expected = 4/5
+    expected = 100*4/5
 
     assert actual == expected
 
