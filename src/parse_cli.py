@@ -36,6 +36,11 @@ def parse_cli():
                      help="Filename of the classification model",
                      default="dysplasia_svm_model.pkl")
 
+    par.add_argument("--feature_set_filename",
+                     dest="featset",
+                     help="Filename of pkl containing training features",
+                     default="dysplasia_svm_features.pkl")
+
     par.add_argument("--out_of_bag_testing",
                      dest="splitting",
                      help="Use out of bag samples for classification metrics "
