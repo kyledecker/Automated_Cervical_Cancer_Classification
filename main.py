@@ -11,19 +11,22 @@ if __name__ == "__main__":
     from classification_model import *
     from sklearn.model_selection import train_test_split
     from classification_model_metrics import *
+    from parse_cli import parse_cli
 
-    verb = False
-    train = True
-    split_train_test = False
+    # gather argparse inputs
+    args = parse_cli()
+    verb = args.v
+    train = args.t
+    split_train_test = args.splitting
+    data_path = args.t_dir
+    median_feats = args.med_feats
+    variance_feats = args.var_feats
+    mode_feats = args.mode_feats
+    otsu_feats = args.otsu_feats
+    unknown_file = args.f
+    model_filename = args.model
 
-    data_path = os.getcwd() + '/TrainingData/'
-    median_feats = ''
-    variance_feats = 'rgb'
-    mode_feats = 'bg'
-    otsu_feats = ''
     omit_pix = [0, 255]
-
-    unknown_file = './test/ExampleAbnormalCervix.tif'
 
     n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
 
@@ -69,10 +72,10 @@ if __name__ == "__main__":
             y_test = target_array
 
         # Train SVM
-        svm = train_model(x_train, y_train, 'basic_model.pkl')
+        svm = train_model(x_train, y_train, model_filename)
 
         # Perform prediction on test set
-        y_pred = class_predict(x_test, 'basic_model.pkl')
+        y_pred = class_predict(x_test, model_filename)
 
         accuracy = calc_accuracy(y_test, y_pred)
         print('Classification accuracy on test set = %1f ' % accuracy)
@@ -101,7 +104,7 @@ if __name__ == "__main__":
                                     otsu_ch=otsu_feats,
                                     omit=[0, 255])
 
-        y_pred = class_predict(features.reshape(1, -1), 'basic_model.pkl')
+        y_pred = class_predict(features.reshape(1, -1), model_filename)
 
         if y_pred == 1:
             print("SVM Classification Result = Dysplasia")
