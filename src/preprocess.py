@@ -75,7 +75,7 @@ def extract_hist(pix_array, verb=False):
     return hist
 
 
-def remove_background(rgb, verb=False):
+def nan_background(rgb, verb=False):
     """
     identify background pixels (R=0, B=0, and G=0) and convert to NaN
 
@@ -87,7 +87,7 @@ def remove_background(rgb, verb=False):
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [remove_background] Dimensions of input RGB pixel ' \
+        msg = 'ERROR [nan_background] Dimensions of input RGB pixel ' \
               'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
@@ -106,7 +106,7 @@ def remove_background(rgb, verb=False):
     return rgb
 
 
-def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
+def nan_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     """
     identify bright pixels above RGB threshold and convert to NaN
 
@@ -119,7 +119,7 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [limit_upper_bound] Dimensions of input RGB pixel ' \
+        msg = 'ERROR [nan_upper_bound] Dimensions of input RGB pixel ' \
               'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
@@ -128,6 +128,47 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     rgb[(rgb[:, :, 0] > lim[0]) &
         (rgb[:, :, 1] > lim[1]) &
         (rgb[:, :, 2] > lim[2]), :] = (np.nan, np.nan, np.nan)
+    if verb:
+        from accessory import show_rgb
+        test_img = np.array(rgb)
+        test_img[np.isnan(test_img)] = 100
+        show_rgb(test_img)
+
+    return rgb
+
+
+def nan_yellow_pixels(rgb, rlims=[200, 255], glims=[150, 255], blims=[0, 150],
+                      gb_delta=30, verb=False):
+    """
+    set pixel values in range to NaN with restriction that B < G
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param rlims: minimum and maximum of R pixel values
+    :param glims: maximum and maximum of G pixel values
+    :param blims: maximum and maximum of B pixel values
+    :param gb_delta: minimum difference between G and B pixel values
+    :param verb: verbose mode to show excluded pixels in gray, default False
+    :return: RGB pixel array (np.array)
+    """
+    import numpy as np
+
+    img_shape = np.shape(rgb)
+    if img_shape[2] != 3:
+        msg = 'ERROR [nan_upper_bound] Dimensions of input RGB pixel ' \
+              'array incorrect. Expected dimensions are height x width x RGB.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    rgb[(rgb[:, :, 0] >= rlims[0]) &
+        (rgb[:, :, 0] <= rlims[1]) &
+        (rgb[:, :, 1] >= glims[0]) &
+        (rgb[:, :, 1] <= glims[1]) &
+        (rgb[:, :, 2] >= blims[0]) &
+        (rgb[:, :, 2] <= blims[1]) &
+        (rgb[:, :, 1] <= rgb[:, :, 0]) &
+        (rgb[:, :, 2] < rgb[:, :, 1]-gb_delta), :] = (np.nan, np.nan, np.nan)
+
     if verb:
         from accessory import show_rgb
         test_img = np.array(rgb)
@@ -175,9 +216,9 @@ def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255,
     max_RGB = (255, 255, 255)
 
     if exclude_bg:
-        rgb = remove_background(rgb)
+        rgb = nan_background(rgb)
     if np.sum(upper_lim) < np.sum(max_RGB):
-        rgb = limit_upper_bound(rgb, upper_lim)
+        rgb = nan_upper_bound(rgb, upper_lim)
 
     msg = '[rgb_preprocess] Pre-processing RGB pixel array.'
     logging.debug(msg)

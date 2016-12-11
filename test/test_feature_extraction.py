@@ -56,8 +56,8 @@ def test_extract_features():
     img[:, :, 1] = g
     img[:, :, 2] = b
 
-    actual = extract_features(img, 'gb', 'r', 'rg')
-    expected = [np.median(g), np.median(b), np.std(r), 5, 0]
+    actual = extract_features(img, 'gb', 'r', 'rg', pct_yellow=True)
+    expected = [np.median(g), np.median(b), np.std(r), 5, 0, 0]
 
     assert np.array_equal(actual, expected)
 
@@ -65,3 +65,18 @@ def test_extract_features():
     expected = [5, 0, 5]
 
     assert np.array_equal(actual, expected)
+
+
+def test_calc_pct_yellow():
+    from feature_extraction import calc_pct_yellow
+    import numpy as np
+
+    rgb = np.ones((10, 10, 3))
+    rgb[1, 1, :] = [255, 255, 40]
+    rgb[0, 1, :] = [0, 0, 0]
+    rgb[0, 0, :] = [np.nan, np.nan, np.nan]
+
+    actual = calc_pct_yellow(rgb)
+    expected = 100/98
+
+    assert actual == expected

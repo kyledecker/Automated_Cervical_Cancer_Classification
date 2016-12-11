@@ -44,3 +44,27 @@ def test_rgbstring2index():
     expected = [2]
 
     assert np.array_equal(actual, expected)
+
+
+def test_color_nans():
+    from accessory import color_nans
+    import numpy as np
+
+    rgb = np.nan*np.ones((10, 10, 3))
+    actual = color_nans(rgb, [0, 0, 0])
+    expected = np.zeros((10, 10, 3))
+
+    assert np.array_equal(actual, expected)
+
+
+def test_percent_color():
+    from accessory import percent_color
+    import numpy as np
+
+    rgb = np.ones((10, 10, 3))
+    rgb[1, 1, :] = [25, 25, 25]
+    rgb[1, 2, :] = [0, 0, 0]
+    actual = percent_color(rgb, [25, 25, 25])
+    expected = 100/99
+
+    assert np.array_equal(actual, expected)

@@ -26,6 +26,26 @@ def get_iterable(x):
         return x,
 
 
+def color_nans(rgb, color=[0, 0, 255], verb=False):
+    """
+    assign color to NaN pixels in image
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param color: RGB color used in place of NaN pixel
+    :param verb: verbose mode to show colored image, default False
+    :return: RGB pixel array (np.array)
+    """
+    import numpy as np
+
+    rgb[np.isnan(rgb[:, :, 0]), :] = color
+
+    if verb:
+        from accessory import show_rgb
+        show_rgb(rgb)
+
+    return rgb
+
+
 def rgbstring2index(rgbstring):
     """
     converts RGB string into array containing corresponding channel indices
@@ -49,3 +69,24 @@ def rgbstring2index(rgbstring):
     idx = idx.astype('int')
 
     return get_iterable(idx)
+
+
+def percent_color(rgb, color):
+    """
+    calculate percent of RGB color in image (black pixels excluded)
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param color: RGB color to calculate percentage of
+    :return: percent of color in image
+    """
+    import numpy as np
+
+    nCol = np.sum((rgb[:, :, 0] == color[0]) & (rgb[:, :, 1] == color[1]) &
+                  (rgb[:, :, 2] == color[2]))
+
+    nTot = np.sum(~((rgb[:, :, 0] == 0) & (rgb[:, :, 1] == 0) &
+                    (rgb[:, :, 2] == 0)))
+
+    percent = 100*nCol/nTot
+
+    return percent

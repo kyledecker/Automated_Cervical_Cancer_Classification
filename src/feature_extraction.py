@@ -87,10 +87,10 @@ def calc_median(img, omit=[]):
         print(msg)
         sys.exit()
 
-    for omit_idx in get_iterable(omit):
-        img[img == omit_idx] = np.nan
-
     pixels = np.ravel(img)
+    for omit_idx in get_iterable(omit):
+        pixels[pixels == omit_idx] = np.nan
+
     pixels = pixels[np.isfinite(pixels)]
     median = np.median(pixels)
 
@@ -115,18 +115,41 @@ def calc_variance(img, omit=[]):
         print(msg)
         sys.exit()
 
-    for omit_idx in get_iterable(omit):
-        img[img == omit_idx] = np.nan
-
     pixels = np.ravel(img)
+    for omit_idx in get_iterable(omit):
+        pixels[pixels == omit_idx] = np.nan
+
     pixels = pixels[np.isfinite(pixels)]
     variance = np.std(pixels)
 
     return variance
 
 
+def calc_pct_yellow(rgb):
+    """
+    calculate percentage of yellow pixels (excluding NaN and black pixels)
+
+    :param rgb: RGB pixel array
+    :return: percent of color in image
+    """
+    import numpy as np
+    from accessory import color_nans, percent_color
+    from preprocess import nan_yellow_pixels
+
+    y_label = [255, 255, 0]
+    recolored_rgb = np.array(rgb)
+
+    recolored_rgb = color_nans(recolored_rgb, [0, 0, 0])
+    recolored_rgb = nan_yellow_pixels(recolored_rgb)
+    recolored_rgb = color_nans(recolored_rgb, color=y_label)
+
+    pct = percent_color(recolored_rgb, y_label)
+
+    return pct
+
+
 def extract_features(rgb, median_ch='', variance_ch='',
-                     mode_ch='', otsu_ch='',
+                     mode_ch='', otsu_ch='', pct_yellow=False,
                      omit=[], verb=False):
     """
     extract specific image features from rgb pixel array
@@ -136,6 +159,7 @@ def extract_features(rgb, median_ch='', variance_ch='',
     :param variance_ch: color channels to extract variance feature
     :param mode_ch: color channels to extract mode feature
     :param otsu_ch: color channels to extract Otsu threshold
+    :param pct_yellow: use percent yellow pixel feature
     :param omit: pixel values to omit from feature extraction
     :param verb: enable verbose mode to output intermediate figures
     :return: feature array (np.array)
@@ -198,9 +222,15 @@ def extract_features(rgb, median_ch='', variance_ch='',
     except TypeError:
         otsu_feats = []
 
+    if pct_yellow:
+        ypct_feat = calc_pct_yellow(rgb)
+    else:
+        ypct_feat = []
+
     features = median_feats
     features = np.append(features, variance_feats)
     features = np.append(features, mode_feats)
     features = np.append(features, otsu_feats)
+    features = np.append(features, ypct_feat)
 
     return features
