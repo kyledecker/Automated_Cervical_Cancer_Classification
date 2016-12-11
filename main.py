@@ -102,7 +102,8 @@ if __name__ == "__main__":
                                     variance_ch=variance_feats,
                                     mode_ch=mode_feats,
                                     otsu_ch=otsu_feats,
-                                    omit=[0, 255])
+                                    omit=[0, 255],
+                                    verb=verb)
 
         y_pred = class_predict(features.reshape(1, -1), model_filename)
 

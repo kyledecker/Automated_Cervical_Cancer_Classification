@@ -36,7 +36,6 @@ def parse_cli():
                      help="Filename of the classification model",
                      default="dysplasia_svm_model.pkl")
 
-
     par.add_argument("--out_of_bag_testing",
                      dest="splitting",
                      help="Use out of bag samples for classification metrics "
@@ -46,38 +45,30 @@ def parse_cli():
 
     par.add_argument("--median_features",
                      dest="med_feats",
-                     help="Color channels to extract median feature from",
+                     help="Color channels to extract median feature from <"
+                          "rgb>",
                      default='')
 
     par.add_argument("--variance_features",
                      dest="var_feats",
-                     help="Color channels to extract variance feature from",
+                     help="Color channels to extract variance feature from <"
+                          "rgb>",
                      default='rgb')
 
     par.add_argument("--mode_features",
                      dest="mode_feats",
-                     help="Color channels to extract mode feature from",
+                     help="Color channels to extract mode feature from <rgb>",
                      default='bg')
 
     par.add_argument("--otsu_features",
                      dest="otsu_feats",
-                     help="Color channels to extract otsu feature from",
+                     help="Color channels to extract otsu feature from <rgb>",
                      default='')
 
     par.add_argument("--log",
                      dest="l",
                      help="Logging Level <DEBUG, INFO, WARNING, ERROR>",
                      default='DEBUG')
-
-    par.add_argument("--shoutout",
-                     dest="shoutout",
-                     help="shoutout message",
-                     default="Ultrasound Image Formation From Raw RF Data")
-
-    par.add_argument("--noshoutout",
-                     dest="noshoutout",
-                     help="suppress shoutout message printing",
-                     action="store_true")
 
     args = par.parse_args()
 
