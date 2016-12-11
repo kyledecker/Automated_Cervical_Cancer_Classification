@@ -75,7 +75,7 @@ def extract_hist(pix_array, verb=False):
     return hist
 
 
-def remove_background(rgb, verb=False):
+def nan_background(rgb, verb=False):
     """
     identify background pixels (R=0, B=0, and G=0) and convert to NaN
 
@@ -87,7 +87,7 @@ def remove_background(rgb, verb=False):
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [remove_background] Dimensions of input RGB pixel ' \
+        msg = 'ERROR [nan_background] Dimensions of input RGB pixel ' \
               'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
@@ -106,7 +106,7 @@ def remove_background(rgb, verb=False):
     return rgb
 
 
-def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
+def nan_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     """
     identify bright pixels above RGB threshold and convert to NaN
 
@@ -119,7 +119,7 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [limit_upper_bound] Dimensions of input RGB pixel ' \
+        msg = 'ERROR [nan_upper_bound] Dimensions of input RGB pixel ' \
               'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
@@ -158,7 +158,7 @@ def nan_yellow_pixels(rgb,
 
     img_shape = np.shape(rgb)
     if img_shape[2] != 3:
-        msg = 'ERROR [limit_upper_bound] Dimensions of input RGB pixel ' \
+        msg = 'ERROR [nan_upper_bound] Dimensions of input RGB pixel ' \
               'array incorrect. Expected dimensions are height x width x RGB.'
         logging.error(msg)
         print(msg)
@@ -220,9 +220,9 @@ def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255,
     max_RGB = (255, 255, 255)
 
     if exclude_bg:
-        rgb = remove_background(rgb)
+        rgb = nan_background(rgb)
     if np.sum(upper_lim) < np.sum(max_RGB):
-        rgb = limit_upper_bound(rgb, upper_lim)
+        rgb = nan_upper_bound(rgb, upper_lim)
 
     msg = '[rgb_preprocess] Pre-processing RGB pixel array.'
     logging.debug(msg)

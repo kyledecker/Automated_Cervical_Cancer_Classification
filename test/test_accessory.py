@@ -44,3 +44,14 @@ def test_rgbstring2index():
     expected = [2]
 
     assert np.array_equal(actual, expected)
+
+
+def test_color_nans():
+    from accessory import color_nans
+    import numpy as np
+
+    rgb = np.nan*np.ones((10, 10, 3))
+    actual = color_nans(rgb, [0, 0, 0])
+    expected = np.zeros((10, 10, 3))
+
+    assert np.array_equal(actual, expected)
