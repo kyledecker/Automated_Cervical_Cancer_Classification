@@ -137,6 +137,37 @@ def limit_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     return rgb
 
 
+def remove_yellow_pixels(rgb, tol=10, verb=False):
+    """
+    identify yellow pixels and convert to NaN
+
+    :param rgb: RGB pixel array with dimensions: height x width x RGB
+    :param tol: tolerance of R pixel value from max 255
+    :param verb: verbose mode to show excluded pixels in gray, default False
+    :return: RGB pixel array (np.array)
+    """
+    import numpy as np
+
+    img_shape = np.shape(rgb)
+    if img_shape[2] != 3:
+        msg = 'ERROR [limit_upper_bound] Dimensions of input RGB pixel ' \
+              'array incorrect. Expected dimensions are height x width x RGB.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    rgb[(rgb[:, :, 0] > 255-tol) &
+        (rgb[:, :, 2] < rgb[:, :, 1]), :] = (np.nan, np.nan, np.nan)
+
+    if verb:
+        from accessory import show_rgb
+        test_img = np.array(rgb)
+        test_img[np.isnan(test_img)] = 100
+        show_rgb(test_img)
+
+    return rgb
+
+
 def process_rgb_histogram(hist, omit=[]):
     """
     omit unwanted bins and normalize histogram by dividing out total # pixels

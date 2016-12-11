@@ -12,7 +12,6 @@ if __name__ == "__main__":
     from classification_model_metrics import *
 
     verb = False
-    train = True
 
     data_path = os.getcwd() + '/TrainingData/'
     median_feats = 'rgb'
@@ -20,8 +19,6 @@ if __name__ == "__main__":
     mode_feats = 'rgb'
     otsu_feats = 'rgb'
     omit_pix = [0, 255]
-
-    unknown_file = './test/ExampleAbnormalCervix.tif'
 
     n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
 
