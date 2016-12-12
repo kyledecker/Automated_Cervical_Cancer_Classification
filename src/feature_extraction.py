@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 
@@ -33,13 +34,14 @@ def calc_mode(hist, omit=[]):
     return mode
 
 
-def otsu_threshold(img, omit=[], verb=False):
+def otsu_threshold(img, omit=[], verb=False, outfile='./otsu_img.png'):
     """
     calculate the global otsu's threshold for image
 
     :param img: 2D array of pixel values
     :param omit: pixel values to omit from calculation
     :param verb: verbose mode to display threshold image
+    :param outfile: file to output otsu image if verbose
     :return: threshold (float)
     """
     from skimage.filters import threshold_otsu
@@ -62,9 +64,17 @@ def otsu_threshold(img, omit=[], verb=False):
 
     if verb:
         import matplotlib.pyplot as plt
+        from accessory import create_dir
         global_otsu = img >= threshold_global_otsu
         plt.imshow(global_otsu, cmap=plt.cm.gray)
-        plt.show()
+
+        msg = '[otsu_threshold] Saving Otsu threshold image: %s' % outfile
+        logging.info(msg)
+        print(msg)
+
+        create_dir(outfile)
+        plt.savefig(outfile)
+        plt.clf()
 
     return threshold_global_otsu
 
@@ -127,23 +137,32 @@ def calc_variance(img, omit=[]):
     return variance
 
 
-def calc_pct_yellow(rgb):
+def calc_pct_yellow(rgb, verb=False, outfile='./yellow.png'):
     """
     calculate percentage of yellow pixels (excluding NaN and black pixels)
 
     :param rgb: RGB pixel array
+    :param verb: verbose mode to display image yellow pixels highlighted
+    :param outfile: file to output highlighted image if verbose
     :return: percent of color in image
     """
     import numpy as np
     from accessory import color_nans, percent_color
     from preprocess import nan_yellow_pixels
 
-    y_label = [255, 255, 0]
+    y_label = [0, 255, 0]
     recolored_rgb = np.array(rgb)
 
     recolored_rgb = color_nans(recolored_rgb, [0, 0, 0])
     recolored_rgb = nan_yellow_pixels(recolored_rgb)
     recolored_rgb = color_nans(recolored_rgb, color=y_label)
+
+    if verb:
+        from accessory import save_rgb
+        msg = '[calc_pct_yellow] Saving yellow labeled image: %s' % outfile
+        logging.info(msg)
+        print(msg)
+        save_rgb(recolored_rgb, outfile)
 
     pct = percent_color(recolored_rgb, y_label)
 
@@ -152,7 +171,7 @@ def calc_pct_yellow(rgb):
 
 def extract_features(rgb, median_ch='', variance_ch='',
                      mode_ch='', otsu_ch='', pct_yellow=False,
-                     omit=[], verb=False):
+                     omit=[], verb=False, outdir='./outputs/'):
     """
     extract specific image features from rgb pixel array
 
@@ -164,13 +183,15 @@ def extract_features(rgb, median_ch='', variance_ch='',
     :param pct_yellow: use percent yellow pixel feature
     :param omit: pixel values to omit from feature extraction
     :param verb: enable verbose mode to output intermediate figures
+    :param outdir: directory to store all outputs if verbose
     :return: feature array (np.array)
     """
     from preprocess import rgb_histogram
     from accessory import rgbstring2index
     import numpy as np
 
-    rh, gh, bh = rgb_histogram(rgb, verb=verb, omit=omit)
+    outfile = os.path.join(outdir, 'rgb_hist.png')
+    rh, gh, bh = rgb_histogram(rgb, verb=verb, omit=omit, outfile=outfile)
     hists = (rh, gh, bh)
 
     median_idx = rgbstring2index(median_ch)
@@ -213,8 +234,10 @@ def extract_features(rgb, median_ch='', variance_ch='',
         mode_feats = []
 
     try:
-        otsu_feats = [otsu_threshold(rgb[:, :, ii], omit, verb=verb) for
-                      ii in otsu_idx]
+        outfiles = {ii: os.path.join(outdir, 'otsu'+str(ii)+'.png')
+                    for ii in otsu_idx}
+        otsu_feats = [otsu_threshold(rgb[:, :, ii], omit, verb=verb,
+                                     outfile=outfiles[ii]) for ii in otsu_idx]
     except IndexError:
         msg = 'ERROR [extract_features] Color channel index for Otsu ' \
               'threshold out of bounds (0:R, 1:G, 2:B).'
@@ -225,7 +248,8 @@ def extract_features(rgb, median_ch='', variance_ch='',
         otsu_feats = []
 
     if pct_yellow:
-        ypct_feat = calc_pct_yellow(rgb)
+        outfile = os.path.join(outdir, 'ypixels.png')
+        ypct_feat = calc_pct_yellow(rgb, verb=verb, outfile=outfile)
     else:
         ypct_feat = []
 

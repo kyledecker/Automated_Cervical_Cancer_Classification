@@ -73,7 +73,8 @@ def test_percent_color():
 def test_create_dir():
     from accessory import create_dir
 
-    filepath = './test_folder/'
+    filepath = './test_folder/file.png'
+    filedir = './test_folder/'
     create_dir(filepath)
-    assert os.path.exists(filepath)
-    os.rmdir(filepath)
+    assert os.path.exists(filedir)
+    os.rmdir(filedir)

@@ -17,6 +17,20 @@ def show_rgb(rgb):
     img.show()
 
 
+def save_rgb(rgb, filename='./rgb.png'):
+    """
+    save RGB image from pixel array
+
+    :param rgb: N x M x 3 RGB pixel array
+    """
+    from PIL import Image
+    import numpy as np
+
+    rgb = rgb.astype(dtype=np.uint8)
+    img = Image.fromarray(rgb, 'RGB')
+    img.save(filename)
+
+
 def create_dir(filepath):
     """
     create new folder if directory in file path does not exist

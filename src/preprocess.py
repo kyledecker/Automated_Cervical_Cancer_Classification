@@ -232,7 +232,8 @@ def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255,
     return rgb
 
 
-def rgb_histogram(rgb, verb=False, process=True, omit=[]):
+def rgb_histogram(rgb, verb=False, process=True, omit=[],
+                  outfile='./hist.png'):
     """
     generate histograms for each color channel of input RGB pixel array
 
@@ -240,6 +241,7 @@ def rgb_histogram(rgb, verb=False, process=True, omit=[]):
     :param verb: verbose mode to show histograms, default False
     :param process: normalize histograms and omit pixel bins, default True
     :param omit: pixel value bins to omit, default []
+    :param outfile: file to output histogram figure if verbose
     :return: histogram values for 0-255 for each color channel (np.arrays)
     """
     import numpy as np
@@ -266,24 +268,31 @@ def rgb_histogram(rgb, verb=False, process=True, omit=[]):
     if verb:
         print(msg)
         import matplotlib.pyplot as plt
+        from accessory import create_dir
         bins = [ii for ii in range(0, 256)]
 
         f, axarr = plt.subplots(3, sharex=True)
-        axarr[0].bar(bins, rh)
+        axarr[0].plot(bins, rh)
         axarr[0].axis('tight')
         axarr[0].set_xlabel('R Pixel Value')
         axarr[0].set_ylabel('Frequency')
 
-        axarr[1].bar(bins, gh)
+        axarr[1].plot(bins, gh)
         axarr[1].axis('tight')
         axarr[1].set_xlabel('G Pixel Value')
         axarr[1].set_ylabel('Frequency')
 
-        axarr[2].bar(bins, bh)
+        axarr[2].plot(bins, bh)
         axarr[2].axis('tight')
         axarr[2].set_xlabel('B Pixel Value')
         axarr[2].set_ylabel('Frequency')
 
-        plt.show()
+        msg = '[rgb_histogram] Saving RGB histogram figure: %s' % outfile
+        logging.info(msg)
+        print(msg)
+
+        create_dir(outfile)
+        plt.savefig(outfile)
+        plt.clf()
 
     return rh, gh, bh
