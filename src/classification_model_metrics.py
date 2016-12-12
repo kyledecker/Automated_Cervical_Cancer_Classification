@@ -34,16 +34,8 @@ def calc_f1_score(targets, predictions):
     :return: F1 score
     """
     import numpy as np
-    
-    if type(targets).__module__ != np.__name__:
-        msg = 'converting targets variable to np array'
-        logging.debug(msg)
-        targets = np.array(targets)
-
-    if type(predictions).__module__ != np.__name__:
-        msg = 'converting predictions variable to np array'
-        logging.debug(msg)
-        predictions = np.array(predictions)
+    import warnings
+    warnings.filterwarnings("error")
 
     true_pos = np.sum((targets == 1) & (predictions == 1)) / np.sum(targets == 1)
     false_pos = np.sum((targets == -1) & (predictions == 1)) / np.sum(targets == -1)
