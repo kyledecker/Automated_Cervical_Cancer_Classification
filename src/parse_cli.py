@@ -19,6 +19,11 @@ def parse_cli():
                      help="Full Path to Training Data",
                      default=os.getcwd() + '/TrainingData/')
 
+    par.add_argument("--output_dir",
+                     dest="out_dir",
+                     help="Full Path to Output Directory",
+                     default=os.getcwd() + '/outputs/')
+
     par.add_argument("--verbose",
                      dest="v",
                      help="Display Image Histograms and Features <True/False>",

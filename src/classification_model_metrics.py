@@ -38,30 +38,38 @@ def calc_f1_score(targets, predictions):
     return f1
 
 
-def calc_ROC(targets, soft_predictions, plot_ROC=False):
+def calc_ROC(targets, soft_predictions, plot_ROC=False, outfile='./roc.png'):
     """
     determine ROC of SVM classifier
 
     :param targets: numpy vector of m targets
     :param soft_predictions: class probabilities
     :param plot_ROC: if true generate plot of ROC
+    :param outfile: file to output ROC plot if verbose
     :return: array of [false pos. rate, false neg. rate]
     """
-
     import numpy as np
     from sklearn.metrics import roc_curve
-    from matplotlib import pyplot as plt
 
     fpr, tpr, thresh = roc_curve(targets, soft_predictions)
     
     if plot_ROC:
+        msg = '[calc_ROC] Saving ROC curve to: %s' % outfile
+        logging.info(msg)
+        print(msg)
+
+        from matplotlib import pyplot as plt
+        from accessory import create_dir
         plt.plot(fpr, tpr)
         plt.plot([0, 1], [0, 1], "r--", alpha=.5)
         plt.axis((-0.01, 1.01, -0.01, 1.01))
         plt.ylabel('True Positive Rate')
         plt.xlabel('False Positive Rate')
         plt.title('ROC for SVM Model on Test Set')
-        plt.show()
+
+        create_dir(outfile)
+        plt.savefig(outfile)
+        plt.clf()
 
     return [fpr, tpr]
 
@@ -83,7 +91,8 @@ def calc_AUC(targets, soft_predictions):
     return auc
 
 
-def gen_confusion_matrix(targets, predictions, classes, verb=False):
+def gen_confusion_matrix(targets, predictions, classes, verb=False,
+                         outfile='./confusion.png'):
     """
     generate confusion matrix to evaluate classification accuracy
 
@@ -91,6 +100,7 @@ def gen_confusion_matrix(targets, predictions, classes, verb=False):
     :param predictions: numpy vector of m predicted targets
     :param classes: classification target names
     :param verb: verbose mode to visualize confusion matrix, default False
+    :param outfile: file to output confusion matrix figure if verbose
     :return: confusion matrix
     """
     import numpy as np
@@ -99,18 +109,19 @@ def gen_confusion_matrix(targets, predictions, classes, verb=False):
     cm = confusion_matrix(targets, predictions, labels=None,
                           sample_weight=None)
 
-    msg = '[gen_confusion_matrix] Calculating confusion matrix.'
-    logging.debug(msg)
     if verb:
+        msg = '[gen_confusion_matrix] Saving confusion matrix to: %s' % outfile
+        logging.info(msg)
         print(msg)
-        plot_confusion_matrix(cm, classes)
+        plot_confusion_matrix(cm, classes, outfile=outfile)
 
     return cm
 
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
-                          title='Confusion Matrix'):
+                          title='Confusion Matrix',
+                          outfile='./cm.png'):
     """
     plots the confusion matrix (directly adapted from sklearn example)
 
@@ -118,10 +129,12 @@ def plot_confusion_matrix(cm, classes,
     :param classes: classification target names
     :param normalize: enable to normalize confusion matrix values
     :param title: plot title, default='Confusion Matrix'
+    :param outfile: file to output confusion matrix figure if verbose
     """
     import numpy as np
     import itertools
     import matplotlib.pyplot as plt
+    from accessory import create_dir
 
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title(title)
@@ -142,7 +155,10 @@ def plot_confusion_matrix(cm, classes,
     plt.tight_layout()
     plt.ylabel('True')
     plt.xlabel('Predicted')
-    plt.show()
+
+    create_dir(outfile)
+    plt.savefig(outfile)
+    plt.clf()
 
 
 def plot_features(features, targets, labels):

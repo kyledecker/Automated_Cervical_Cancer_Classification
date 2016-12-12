@@ -8,6 +8,7 @@ sys.path.insert(0, os.path.abspath('./src/'))
 if __name__ == "__main__":
     from preprocess import read_tiff, rgb_preprocess
     from feature_extraction import extract_features, calc_pct_yellow
+    from accessory import create_dir
     from classification_model import *
     from sklearn.model_selection import train_test_split
     from classification_model_metrics import *
@@ -20,6 +21,10 @@ if __name__ == "__main__":
     train = args.t
     model_filename = args.model
     featset_filename = args.featset
+    outdir = args.out_dir
+
+    # create outputs directory if it does not exist
+    create_dir(outdir)
 
     # pixels to omit from feature extraction
     omit_pix = [0, 255]
@@ -60,8 +65,13 @@ if __name__ == "__main__":
             logging.info(msg)
             print(msg)
 
+            train_outdir = os.path.join(outdir,
+                                    os.path.splitext(train_files[i])[0])
+            if verb:
+                create_dir(train_outdir)
+
             rgb = read_tiff(filename=(data_path+train_files[i]))
-            rgb = rgb_preprocess(rgb, verb=verb, exclude_bg=True,
+            rgb = rgb_preprocess(rgb, exclude_bg=True,
                                  upper_lim=(0, 0, b_thresh))
 
             features = extract_features(rgb,
@@ -71,7 +81,8 @@ if __name__ == "__main__":
                                         otsu_ch=feature_types['otsu'],
                                         pct_yellow=feature_types['ypct'],
                                         omit=omit_pix,
-                                        verb=verb)
+                                        verb=verb,
+                                        outdir=train_outdir)
 
             feature_array[i, :] = features
 
@@ -108,24 +119,31 @@ if __name__ == "__main__":
         print(msg)
         
         soft_predictions = svm.predict_proba(x_test)
-        roc = calc_ROC(y_test, soft_predictions[:, 1], True)
+        outfile = os.path.join(outdir, 'roc.png')
+        roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
         auc = calc_AUC(y_test, soft_predictions[:, 1])
 
         msg = 'AUC on test set = %.1f ' % auc
         logging.info(msg)
         print(msg)
 
-        gen_confusion_matrix(y_test, y_pred, ('Dysplasia', 'Healthy'),
-                             verb=True)
+        outfile = os.path.join(outdir, 'confusionmat.png')
+        gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysplasia'),
+                             verb=True, outfile=outfile)
         
     else:
         # gather prediction specific CLI
         unknown_file = args.f
 
+        # create directory for prediction outputs
+        pred_outdir = os.path.join(outdir, 'prediction')
+        if verb:
+            create_dir(pred_outdir)
+
         feature_types = pickle.load(open(featset_filename, 'rb'))
 
         rgb = read_tiff(filename=unknown_file)
-        rgb = rgb_preprocess(rgb, verb=verb, exclude_bg=True,
+        rgb = rgb_preprocess(rgb, exclude_bg=True,
                              upper_lim=(0, 0, b_thresh))
 
         features = extract_features(rgb,
@@ -135,12 +153,15 @@ if __name__ == "__main__":
                                     otsu_ch=feature_types['otsu'],
                                     pct_yellow=feature_types['ypct'],
                                     omit=omit_pix,
-                                    verb=verb)
+                                    verb=verb,
+                                    outdir=pred_outdir)
 
         y_pred = class_predict(features.reshape(1, -1), model_filename)
-        pct_disease = calc_pct_yellow(rgb)
 
         if y_pred == 1:
+            outfile = os.path.join(pred_outdir, 'disease.png')
+            pct_disease = calc_pct_yellow(rgb, verb=True, outfile=outfile)
+
             msg = "SVM Classification Result = Dysplasia"
             logging.info(msg)
             print(msg)

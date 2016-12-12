@@ -1,3 +1,8 @@
+import sys
+import os
+import logging
+
+
 def show_rgb(rgb):
     """
     display RGB image from pixel array
@@ -10,6 +15,38 @@ def show_rgb(rgb):
     rgb = rgb.astype(dtype=np.uint8)
     img = Image.fromarray(rgb, 'RGB')
     img.show()
+
+
+def save_rgb(rgb, filename='./rgb.png'):
+    """
+    save RGB image from pixel array
+
+    :param rgb: N x M x 3 RGB pixel array
+    """
+    from PIL import Image
+    import numpy as np
+
+    rgb = rgb.astype(dtype=np.uint8)
+    img = Image.fromarray(rgb, 'RGB')
+    img.save(filename)
+
+
+def create_dir(filepath):
+    """
+    create new folder if directory in file path does not exist
+
+    :param filepath: file path and name
+    """
+    out_dir = os.path.dirname(filepath)
+    if not os.path.exists(out_dir):
+        try:
+            os.makedirs(out_dir)
+        except:
+            msg = 'ERROR [create_dir] Invalid output path ' + out_dir + \
+                  '. Exiting script...'
+            print(msg)
+            logging.error(msg)
+            sys.exit()
 
 
 def get_iterable(x):
