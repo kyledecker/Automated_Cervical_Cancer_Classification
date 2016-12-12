@@ -34,13 +34,39 @@ def calc_f1_score(targets, predictions):
     :return: F1 score
     """
     import numpy as np
+    
+    if type(targets).__module__ != np.__name__:
+        msg = 'converting targets variable to np array'
+        logging.debug(msg)
+        targets = np.array(targets)
+
+    if type(predictions).__module__ != np.__name__:
+        msg = 'converting predictions variable to np array'
+        logging.debug(msg)
+        predictions = np.array(predictions)
 
     true_pos = np.sum((targets == 1) & (predictions == 1)) / np.sum(targets == 1)
     false_pos = np.sum((targets == -1) & (predictions == 1)) / np.sum(targets == -1)
     false_neg = np.sum((targets == 1) & (predictions == -1)) / np.sum(targets == 1)
-    precision = true_pos / (true_pos + false_pos)
-    recall = true_pos / (true_pos + false_neg)
-    f1 = 2 * (precision * recall) / (precision + recall)
+    try:
+        precision = true_pos / (true_pos + false_pos)
+    except RuntimeWarning:
+        msg = 'Summation of TP + FP = 0, precision metric not reliable'
+        logging.debug(msg)
+        precision = 0
+
+    try:
+        recall = true_pos / (true_pos + false_neg)
+    except RuntimeWarning:
+        msg = 'Summation of TP + FN = 0, recall metric not reliable'
+        logging.debug(msg)
+        recall = 0
+
+    if (precision == 0) | (recall == 0):
+        print('F1 Score is not reliable as the number of TP, FP, or FN is 0')
+        f1 = 0
+    else:
+        f1 = 2 * (precision * recall) / (precision + recall)
 
     return f1
 
