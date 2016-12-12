@@ -130,7 +130,8 @@ if __name__ == "__main__":
         logging.info(msg)
         print(msg)
 
-        msg = '*******************\n'
+        msg = '*Additional results in outputs folder.' \
+              '\n*******************\n'
         logging.info(msg)
         print(msg)
         
@@ -175,7 +176,8 @@ if __name__ == "__main__":
             logging.info(msg)
             print(msg)
 
-            msg = '*******************\n'
+            msg = '*Additional results in outputs folder.' \
+                  '\n*******************\n'
             logging.info(msg)
             print(msg)
         else:
@@ -187,6 +189,7 @@ if __name__ == "__main__":
             logging.info(msg)
             print(msg)
 
-            msg = '*******************\n'
+            msg = '*Additional results in outputs folder.' \
+                  '\n*******************\n'
             logging.info(msg)
             print(msg)

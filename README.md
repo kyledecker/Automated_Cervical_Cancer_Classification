@@ -4,7 +4,7 @@
 This package is used to classify cervical cancer automatically using features extracted from POCkeT Colposcope images. The classification relies on a SVM model that is trained on a representative sample of dysplasia and healthy images.
 
 ## MODULES
-* *main.py* - wrapper script used to either train and evaluate the SVM model or classify an unkown image 
+* *main.py* - wrapper script used to either train and evaluate the SVM model or classify an unknown image 
 * OTHER FILES HERE
 
 ## UNIT TESTING
@@ -21,3 +21,6 @@ For help and description of input arguments:
 ```
 python main.py --help
 ```
+
+## OUTPUTS
+All output files and figures etc. are saved to a user-specified folder (default: ./outputs/)
