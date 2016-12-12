@@ -52,13 +52,14 @@ def calc_f1_score(targets, predictions):
         precision = true_pos / (true_pos + false_pos)
     except RuntimeWarning:
         msg = 'Summation of TP + FP = 0, precision metric not reliable'
-        logging.info(debug)
+        logging.debug(msg)
         precision = 0
 
     try:
         recall = true_pos / (true_pos + false_neg)
     except RuntimeWarning:
         msg = 'Summation of TP + FN = 0, recall metric not reliable'
+        logging.debug(msg)
         recall = 0
 
     if (precision == 0) | (recall == 0):
