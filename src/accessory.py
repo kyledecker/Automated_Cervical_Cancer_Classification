@@ -40,6 +40,9 @@ def create_dir(filepath):
     out_dir = os.path.dirname(filepath)
     if not os.path.exists(out_dir):
         try:
+            msg = '[create_dir] Creating new directory: ' + out_dir
+            print(msg)
+            logging.info(msg)
             os.makedirs(out_dir)
         except:
             msg = 'ERROR [create_dir] Invalid output path ' + out_dir + \

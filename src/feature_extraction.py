@@ -159,9 +159,12 @@ def calc_pct_yellow(rgb, verb=False, outfile='./yellow.png'):
 
     if verb:
         from accessory import save_rgb
+        from accessory import create_dir
         msg = '[calc_pct_yellow] Saving yellow labeled image: %s' % outfile
         logging.info(msg)
         print(msg)
+
+        create_dir(outfile)
         save_rgb(recolored_rgb, outfile)
 
     pct = percent_color(recolored_rgb, y_label)
