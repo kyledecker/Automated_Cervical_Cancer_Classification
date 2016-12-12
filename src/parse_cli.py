@@ -12,7 +12,7 @@ def parse_cli():
     par.add_argument("--f",
                      dest="f",
                      help="File Name of Image to be Classified",
-                     default='./test/ExampleAbnormalCervix.tif')
+                     default='./ExampleAbnormalCervix.tif')
 
     par.add_argument("--train_dir",
                      dest="t_dir",

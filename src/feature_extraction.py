@@ -150,6 +150,22 @@ def calc_pct_yellow(rgb, verb=False, outfile='./yellow.png'):
     from accessory import color_nans, percent_color
     from preprocess import nan_yellow_pixels
 
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [calc_pct_yellow]] Input array dimensions ' + \
+              str(rgb.shape) + ' incompatible with expected ' \
+                               'N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [calc_pct_yellow] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
     y_label = [0, 255, 0]
     recolored_rgb = np.array(rgb)
 
@@ -192,6 +208,22 @@ def extract_features(rgb, median_ch='', variance_ch='',
     from preprocess import rgb_histogram
     from accessory import rgbstring2index
     import numpy as np
+
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [extract_features]] Input array dimensions ' + \
+              str(rgb.shape) + ' incompatible with expected ' \
+                               'N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [extract_features] Input RGB array must contain ' \
+              'element values between 0 and 255. Actual range: ' \
+              '[%.1f, %.1f]' % (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     outfile = os.path.join(outdir, 'rgb_hist.png')
     rh, gh, bh = rgb_histogram(rgb, verb=verb, omit=omit, outfile=outfile)
