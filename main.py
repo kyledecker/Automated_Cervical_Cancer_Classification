@@ -21,6 +21,14 @@ if __name__ == "__main__":
     model_filename = args.model
     featset_filename = args.featset
     outdir = args.out_dir
+    log_level = args.l
+
+    # configure logging
+    logging.basicConfig(filename="log.txt", level=log_level,
+                        format='%(asctime)s - %(levelname)s: %(message)s',
+                        datefmt='%m/%d/%Y %I:%M:%S %p')
+
+    logging.debug('Running Automated Cervical Cancer Diagnosis.')
 
     # pixels to omit from feature extraction
     omit_pix = [0, 255]
@@ -142,7 +150,16 @@ if __name__ == "__main__":
         # directory for prediction outputs
         pred_outdir = os.path.join(outdir, 'prediction/')
 
-        feature_types = pickle.load(open(featset_filename, 'rb'))
+        try:
+            feature_types = pickle.load(open(featset_filename, 'rb'))
+        except FileNotFoundError:
+            msg = 'Error loading feature info file: %s \n' \
+                'Ensure that you have previously trained the model by running ' \
+                'main.py with train=True \n' \
+                'Exiting script...' % featset_filename
+            print(msg)
+            logging.error(msg)
+            sys.exit()
 
         rgb = read_tiff(filename=unknown_file)
         rgb = rgb_preprocess(rgb, exclude_bg=True,
