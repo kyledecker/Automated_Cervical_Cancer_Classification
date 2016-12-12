@@ -102,14 +102,15 @@ if __name__ == "__main__":
 
         # Perform prediction on test set
         y_pred = class_predict(x_test, model_filename)
-        
+
+        # Calculate and save output metrics
         soft_predictions = svm.predict_proba(x_test)
         outfile = os.path.join(outdir, 'roc.png')
         roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
         auc = calc_AUC(y_test, soft_predictions[:, 1])
 
         outfile = os.path.join(outdir, 'confusionmat.png')
-        gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysplasia'),
+        gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
                              verb=True, outfile=outfile)
 
         msg = '\n\n***** RESULTS *****'
