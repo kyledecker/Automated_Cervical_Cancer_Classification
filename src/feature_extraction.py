@@ -29,6 +29,7 @@ def calc_mode(hist, omit=[]):
     for omit_idx in get_iterable(omit):
         hist[omit_idx] = 0
 
+    # find the index of the histogram maximum
     mode = np.argmax(hist)
 
     return mode
@@ -58,8 +59,8 @@ def otsu_threshold(img, omit=[], verb=False, outfile='./otsu_img.png'):
     # set omitted pixel values as 0
     for omit_idx in get_iterable(omit):
         img[img == omit_idx] = np.nan
-
     img[np.isnan(img)] = 0
+
     threshold_global_otsu = threshold_otsu(img)
 
     if verb:
@@ -97,8 +98,11 @@ def calc_median(img, omit=[]):
         print(msg)
         sys.exit()
 
+    # collapse image into array
     pixels = np.ravel(np.array(img))
     pixels = pixels.astype('float')
+
+    # omit specified pixel values from median calculation
     for omit_idx in get_iterable(omit):
         pixels[pixels == omit_idx] = np.nan
 
@@ -126,8 +130,11 @@ def calc_variance(img, omit=[]):
         print(msg)
         sys.exit()
 
+    # collapse image into array
     pixels = np.ravel(np.array(img))
     pixels = pixels.astype('float')
+
+    # omit specified pixel values from variance calculation
     for omit_idx in get_iterable(omit):
         pixels[pixels == omit_idx] = np.nan
 
@@ -169,7 +176,10 @@ def calc_pct_yellow(rgb, verb=False, outfile='./yellow.png'):
     y_label = [0, 255, 0]
     recolored_rgb = np.array(rgb)
 
+    # assign all image NaNs to black pixels
     recolored_rgb = color_nans(recolored_rgb, [0, 0, 0])
+
+    # assign NaN to all yellow pixels and recolor based on desired label
     recolored_rgb = nan_yellow_pixels(recolored_rgb)
     recolored_rgb = color_nans(recolored_rgb, color=y_label)
 
@@ -183,6 +193,7 @@ def calc_pct_yellow(rgb, verb=False, outfile='./yellow.png'):
         create_dir(outfile)
         save_rgb(recolored_rgb, outfile)
 
+    # calculate the percentage of labeled yellow pixels
     pct = percent_color(recolored_rgb, y_label)
 
     return pct
@@ -225,15 +236,18 @@ def extract_features(rgb, median_ch='', variance_ch='',
         logging.error(msg)
         sys.exit()
 
+    # compute RGB pixel histograms
     outfile = os.path.join(outdir, 'rgb_hist.png')
     rh, gh, bh = rgb_histogram(rgb, verb=verb, omit=omit, outfile=outfile)
     hists = (rh, gh, bh)
 
+    # parse desired RGB features from string inputs
     median_idx = rgbstring2index(median_ch)
     variance_idx = rgbstring2index(variance_ch)
     mode_idx = rgbstring2index(mode_ch)
     otsu_idx = rgbstring2index(otsu_ch)
 
+    # compute desired features
     try:
         median_feats = [calc_median(rgb[:, :, ii], omit) for ii in median_idx]
     except IndexError:
@@ -288,6 +302,7 @@ def extract_features(rgb, median_ch='', variance_ch='',
     else:
         ypct_feat = []
 
+    # store all features into a single array
     features = median_feats
     features = np.append(features, variance_feats)
     features = np.append(features, mode_feats)

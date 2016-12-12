@@ -13,14 +13,23 @@ def read_tiff(filename, verb=False):
     from PIL import Image
     import numpy as np
 
-    img = Image.open(filename)
-    msg = '[read_tiff] Image data loaded from ' + filename
-    logging.debug(msg)
+    # read in tiff image
+    try:
+        img = Image.open(filename)
+        msg = '[read_tiff] Image data loaded from ' + filename
+        logging.debug(msg)
+    except FileNotFoundError as err:
+        msg = 'ERROR [read_tiff] %s is not a valid input tif file: {' \
+              '0}'.format(err) % filename
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     if verb:
         print(msg)
         img.show()
 
+    # split image data into RGB channels
     img.getdata()
     try:
         r, g, b = img.split()
@@ -31,6 +40,7 @@ def read_tiff(filename, verb=False):
         print(msg)
         sys.exit()
 
+    # assign RGB channels to separate indices of array
     ra = np.array(r)
     ga = np.array(g)
     ba = np.array(b)
@@ -55,11 +65,11 @@ def extract_hist(pix_array, verb=False):
     import numpy as np
 
     if np.max(pix_array) > 255 or np.min(pix_array) < 0:
-        msg = 'ERROR [extract_hist] Pixel array value out of bounds (min=0, ' \
-              'max=255). Actual bounds (min=%d, max=%d).' % (np.min(
-                pix_array), np.max(pix_array))
-        logging.error(msg)
+        msg = 'ERROR [extract_hist] Input pixel array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(pix_array), np.max(pix_array))
         print(msg)
+        logging.error(msg)
         sys.exit()
 
     pix_array = pix_array[np.isfinite(pix_array)]
@@ -85,12 +95,20 @@ def nan_background(rgb, verb=False):
     """
     import numpy as np
 
-    img_shape = np.shape(rgb)
-    if img_shape[2] != 3:
-        msg = 'ERROR [nan_background] Dimensions of input RGB pixel ' \
-              'array incorrect. Expected dimensions are height x width x RGB.'
-        logging.error(msg)
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [nan_background] Input array dimensions ' + \
+              str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
         print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [nan_background] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
         sys.exit()
 
     rgb[(rgb[:, :, 0] == 0) &
@@ -117,12 +135,20 @@ def nan_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     """
     import numpy as np
 
-    img_shape = np.shape(rgb)
-    if img_shape[2] != 3:
-        msg = 'ERROR [nan_upper_bound] Dimensions of input RGB pixel ' \
-              'array incorrect. Expected dimensions are height x width x RGB.'
-        logging.error(msg)
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [nan_upper_bound] Input array dimensions ' + \
+              str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
         print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [nan_upper_bound] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
         sys.exit()
 
     rgb[(rgb[:, :, 0] > lim[0]) &
@@ -152,12 +178,20 @@ def nan_yellow_pixels(rgb, rlims=[200, 255], glims=[150, 255], blims=[0, 150],
     """
     import numpy as np
 
-    img_shape = np.shape(rgb)
-    if img_shape[2] != 3:
-        msg = 'ERROR [nan_upper_bound] Dimensions of input RGB pixel ' \
-              'array incorrect. Expected dimensions are height x width x RGB.'
-        logging.error(msg)
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [nan_yellow_pixels] Input array dimensions ' + \
+              str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
         print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [nan_yellow_pixels] Input RGB array must contain ' \
+              'element values between 0 and 255. Actual range: ' \
+              '[%.1f, %.1f]' % (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
         sys.exit()
 
     rgb[(rgb[:, :, 0] >= rlims[0]) &
@@ -189,6 +223,13 @@ def process_rgb_histogram(hist, omit=[]):
     import numpy as np
     from accessory import get_iterable
 
+    if len(hist) != 256:
+        msg = 'ERROR [process_rgb_histogram] Input histogram must contain ' \
+              '256 bins (1 per pixel). Actual bin number = %d. ' % len(hist)
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
     hist = np.array(hist).astype('float')
 
     for ii in get_iterable(omit):
@@ -200,8 +241,8 @@ def process_rgb_histogram(hist, omit=[]):
     return norm_hist
 
 
-def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255,
-                                                                255)):
+def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=[255, 255,
+                                                                255]):
     """
     pre-process rgb pixel array to label background and bright (glare) pixels
 
@@ -213,7 +254,23 @@ def rgb_preprocess(rgb, verb=False, exclude_bg=True, upper_lim=(255, 255,
     """
     import numpy as np
 
-    max_RGB = (255, 255, 255)
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [rgb_preprocess] Input array dimensions ' + \
+              str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [rgb_preprocess] Input RGB array must contain ' \
+              'element values between 0 and 255. Actual range: ' \
+              '[%.1f, %.1f]' % (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    max_RGB = [255, 255, 255]
 
     if exclude_bg:
         rgb = nan_background(rgb)
@@ -246,18 +303,28 @@ def rgb_histogram(rgb, verb=False, process=True, omit=[],
     """
     import numpy as np
 
-    img_shape = np.shape(rgb)
-    if img_shape[2] != 3:
-        msg = 'ERROR [rgb_histogram] Dimensions of input RGB pixel array ' \
-              'incorrect. Expected dimensions are height x width x RGB.'
-        logging.error(msg)
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [rgb_histogram] Input array dimensions ' + \
+              str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
         print(msg)
+        logging.error(msg)
         sys.exit()
 
-    rh = extract_hist(np.squeeze(rgb[:, :, 0]))
-    gh = extract_hist(np.squeeze(rgb[:, :, 1]))
-    bh = extract_hist(np.squeeze(rgb[:, :, 2]))
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [rgb_histogram] Input RGB array must contain ' \
+              'element values between 0 and 255. Actual range: ' \
+              '[%.1f, %.1f]' % (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
+    # compute histograms for each color channel
+    rh = extract_hist(rgb[:, :, 0])
+    gh = extract_hist(rgb[:, :, 1])
+    bh = extract_hist(rgb[:, :, 2])
+
+    # omit bins and normalize histograms
     if process:
         rh = process_rgb_histogram(rh, omit)
         gh = process_rgb_histogram(gh, omit)
@@ -271,6 +338,7 @@ def rgb_histogram(rgb, verb=False, process=True, omit=[],
         from accessory import create_dir
         bins = [ii for ii in range(0, 256)]
 
+        # plot RGB histograms in subplots with shared x axis
         f, axarr = plt.subplots(3, sharex=True)
         axarr[0].plot(bins, rh)
         axarr[0].axis('tight')
