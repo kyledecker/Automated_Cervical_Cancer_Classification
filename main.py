@@ -45,11 +45,44 @@ if __name__ == "__main__":
         otsu_feats = args.otsu_feats
         pct_yellow = args.ypct_feat
 
+        msg = '\nTRAINING'
+        logging.info(msg)
+        print(msg)
+        msg = 'Training data directory: %s' % data_path
+        logging.info(msg)
+        print(msg)
+        msg = 'Split training and test data: %s\n' % split_train_test
+        logging.info(msg)
+        print(msg)
+
+        msg = 'SELECTED FEATURES:'
+        logging.info(msg)
+        print(msg)
+        msg = 'Color channel median: %s' % median_feats
+        logging.info(msg)
+        print(msg)
+        msg = 'Color channel variance: %s' % variance_feats
+        logging.info(msg)
+        print(msg)
+        msg = 'Color channel mode: %s' % mode_feats
+        logging.info(msg)
+        print(msg)
+        msg = 'Color channel Otsu: %s' % otsu_feats
+        logging.info(msg)
+        print(msg)
+        msg = 'Yellow pixel fraction: %s\n' % pct_yellow
+        logging.info(msg)
+        print(msg)
+
         feature_types = {'med': median_feats,
                          'var': variance_feats,
                          'mode': mode_feats,
                          'otsu': otsu_feats,
                          'ypct': pct_yellow}
+
+        msg = 'Training feature set saved: %s' % featset_filename
+        logging.info(msg)
+        print(msg)
         pickle.dump(feature_types, open(featset_filename, 'wb'))
 
         n_feat = len(median_feats + variance_feats + mode_feats + otsu_feats)
@@ -65,7 +98,7 @@ if __name__ == "__main__":
         for i in range(len(train_files)):
 
             msg = 'Extracting features from ' \
-                  + train_files[i] + ' [%d/%d]' % (i+1, len(train_files))
+                  + train_files[i] + ' (%d/%d)' % (i+1, len(train_files))
             logging.info(msg)
             print(msg)
 
@@ -93,6 +126,9 @@ if __name__ == "__main__":
                 target_array[i] = 1
             else:
                 target_array[i] = -1
+            msg = 'Target label (1 dysplasia, -1 healthy): %d' % \
+                  target_array[i]
+            logging.debug(msg)
 
         if split_train_test:
             # Split data in to training and testing (best practice)
@@ -106,21 +142,32 @@ if __name__ == "__main__":
             y_test = target_array
 
         # Train SVM
+        msg = 'Training SVM classifier...'
+        logging.info(msg)
+        print(msg)
         svm = train_model(x_train, y_train, model_filename)
 
         # Perform prediction on test set
+        msg = 'Performing prediction on test data and generating metrics...'
+        logging.info(msg)
+        print(msg)
         y_pred = class_predict(x_test, model_filename)
-        
+
+        # Calculate and save output metrics
+        msg = '\nOUTPUTS'
+        logging.info(msg)
+        print(msg)
+
         soft_predictions = svm.predict_proba(x_test)
         outfile = os.path.join(outdir, 'roc.png')
         roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
         auc = calc_AUC(y_test, soft_predictions[:, 1])
 
         outfile = os.path.join(outdir, 'confusionmat.png')
-        gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysplasia'),
+        gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
                              verb=True, outfile=outfile)
 
-        msg = '\n\n***** RESULTS *****'
+        msg = '\n***** RESULTS *****'
         logging.info(msg)
         print(msg)
 
@@ -147,10 +194,21 @@ if __name__ == "__main__":
         # gather prediction specific CLI
         unknown_file = args.f
 
+        msg = '\nPREDICTION'
+        logging.info(msg)
+        print(msg)
+
+        msg = 'Target prediction file: %s' % model_filename
+        logging.info(msg)
+        print(msg)
+
         # directory for prediction outputs
         pred_outdir = os.path.join(outdir, 'prediction/')
 
         try:
+            msg = 'Feature set: %s' % featset_filename
+            logging.info(msg)
+            print(msg)
             feature_types = pickle.load(open(featset_filename, 'rb'))
         except FileNotFoundError:
             msg = 'Error loading feature info file: %s \n' \
@@ -178,10 +236,14 @@ if __name__ == "__main__":
         y_pred = class_predict(features.reshape(1, -1), model_filename)
 
         if y_pred == 1:
-            outfile = os.path.join(pred_outdir, 'disease.png')
-            pct_disease = calc_pct_yellow(rgb, verb=True, outfile=outfile)
+            msg = '\nOUTPUTS'
+            logging.info(msg)
+            print(msg)
 
-            msg = '\n\n***** RESULTS *****'
+            outfile = os.path.join(pred_outdir, 'labeled_lesion.png')
+            pct_les = calc_pct_yellow(rgb, verb=True, outfile=outfile)
+
+            msg = '\n***** RESULTS *****'
             logging.info(msg)
             print(msg)
 
@@ -189,7 +251,7 @@ if __name__ == "__main__":
             logging.info(msg)
             print(msg)
 
-            msg = "Percent Diseased = %.1f %%" % pct_disease
+            msg = "Percent Lesion = %.1f %%" % pct_les
             logging.info(msg)
             print(msg)
 
@@ -198,7 +260,7 @@ if __name__ == "__main__":
             logging.info(msg)
             print(msg)
         else:
-            msg = '\n\n***** RESULTS *****'
+            msg = '\n***** RESULTS *****'
             logging.info(msg)
             print(msg)
 

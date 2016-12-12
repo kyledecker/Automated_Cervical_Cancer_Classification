@@ -12,6 +12,21 @@ def show_rgb(rgb):
     from PIL import Image
     import numpy as np
 
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [show_rgb] Input array dimensions ' + str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [show_rgb] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
     rgb = rgb.astype(dtype=np.uint8)
     img = Image.fromarray(rgb, 'RGB')
     img.show()
@@ -22,12 +37,30 @@ def save_rgb(rgb, filename='./rgb.png'):
     save RGB image from pixel array
 
     :param rgb: N x M x 3 RGB pixel array
+    :param filename: file where rgb image is saved
     """
     from PIL import Image
     import numpy as np
 
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [save_rgb] Input array dimensions ' + str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [save_rgb] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
     rgb = rgb.astype(dtype=np.uint8)
     img = Image.fromarray(rgb, 'RGB')
+
+    create_dir(filename)
     img.save(filename)
 
 
@@ -56,7 +89,7 @@ def get_iterable(x):
     """
     convert int value into iterable array
 
-    :param x:
+    :param x: parameter to be iterated on
     :return: iterable array
     """
     import collections
@@ -77,7 +110,36 @@ def color_nans(rgb, color=[0, 0, 255], verb=False):
     """
     import numpy as np
 
-    rgb[np.isnan(rgb[:, :, 0]), :] = color
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [color_nans] Input array dimensions ' + str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [color_nans] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(color) > 255 or np.min(color) < 0:
+        msg = 'ERROR [color_nans] Input color must contain element values ' \
+              'between 0 and 255'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    try:
+        rgb[np.isnan(rgb[:, :, 0]), :] = color
+    except ValueError as err:
+        msg = 'ERROR [color_nans] Input color must be an array of 3 RGB ' \
+              'elements: {0}'.format(err)
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     if verb:
         from accessory import show_rgb
@@ -94,7 +156,15 @@ def rgbstring2index(rgbstring):
     :return: array of rgb channel index (np.array)
     """
     import numpy as np
+    import re
     from accessory import get_iterable
+
+    if len(re.findall('[rgb]', rgbstring.lower())) != len(rgbstring):
+        msg = 'ERROR [rgbstring2index] Input string ' + \
+              rgbstring + 'must contain only r, g, or b characters.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     idx = np.array([])
     if 'r' in rgbstring.lower():
@@ -120,6 +190,29 @@ def percent_color(rgb, color):
     :return: percent of color in image
     """
     import numpy as np
+
+    if rgb.ndim != 3 or rgb.shape[-1] != 3:
+        msg = 'ERROR [percent_color] Input array dimensions ' + \
+              str(rgb.shape) + \
+              ' incompatible with expected N x M x 3 RGB input.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(rgb) > 255 or np.min(rgb) < 0:
+        msg = 'ERROR [percent_color] Input RGB array must contain element ' \
+              'values between 0 and 255. Actual range: [%.1f, %.1f]' % \
+              (np.min(rgb), np.max(rgb))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if np.max(color) > 255 or np.min(color) < 0:
+        msg = 'ERROR [percent_color] Input color must contain element ' \
+              'values between 0 and 255'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     nCol = np.sum((rgb[:, :, 0] == color[0]) & (rgb[:, :, 1] == color[1]) &
                   (rgb[:, :, 2] == color[2]))

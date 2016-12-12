@@ -12,8 +12,15 @@ def calc_accuracy(targets, predictions):
     """
     import numpy as np
 
-    accuracy = 100*np.sum(np.subtract(targets, predictions) == 0) / len(
-        targets)
+    try:
+        accuracy = 100*np.sum(np.subtract(targets, predictions) == 0) / len(
+            targets)
+    except ValueError as err:
+        msg = 'ERROR [calc_accuracy] mismatch between target array size and ' \
+              'predictions array size: {0}'.format(err)
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     return accuracy
 
@@ -103,11 +110,17 @@ def gen_confusion_matrix(targets, predictions, classes, verb=False,
     :param outfile: file to output confusion matrix figure if verbose
     :return: confusion matrix
     """
-    import numpy as np
     from sklearn.metrics import confusion_matrix
 
-    cm = confusion_matrix(targets, predictions, labels=None,
-                          sample_weight=None)
+    try:
+        cm = confusion_matrix(targets, predictions, labels=None,
+                              sample_weight=None)
+    except ValueError as err:
+        msg = 'ERROR [gen_confusion_matrix] Mismatch between target array ' \
+              'size and predictions array size: {0}'.format(err)
+        print(msg)
+        logging.error(msg)
+        sys.exit()
 
     if verb:
         msg = '[gen_confusion_matrix] Saving confusion matrix to: %s' % outfile
@@ -136,6 +149,14 @@ def plot_confusion_matrix(cm, classes,
     import matplotlib.pyplot as plt
     from accessory import create_dir
 
+    if len(classes) != cm.shape[0]:
+        msg = 'ERROR [plot_confusion_matrix] Mismatch between number of ' \
+              'specified classes and number of total targets. ' \
+              '(%d classes and %d targets)' % (len(classes), cm.shape[0])
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
     plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
     plt.title(title)
     plt.colorbar()
@@ -152,7 +173,7 @@ def plot_confusion_matrix(cm, classes,
                  horizontalalignment="center",
                  color="white" if cm[i, j] > thresh else "black")
 
-    plt.tight_layout()
+    plt.axis('tight')
     plt.ylabel('True')
     plt.xlabel('Predicted')
 
