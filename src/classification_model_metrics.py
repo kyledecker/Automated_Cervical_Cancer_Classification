@@ -34,8 +34,8 @@ def calc_f1_score(targets, predictions):
     :return: F1 score
     """
     import numpy as np
-    import warnings
-    warnings.filterwarnings("error")
+    #import warnings
+    #warnings.filterwarnings("error")
 
     true_pos = np.sum((targets == 1) & (predictions == 1)) / np.sum(targets == 1)
     false_pos = np.sum((targets == -1) & (predictions == 1)) / np.sum(targets == -1)
