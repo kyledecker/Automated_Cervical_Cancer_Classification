@@ -4,38 +4,29 @@ import logging
 sys.path.insert(0, os.path.abspath('./src/'))
 
 
-def collect_training_data(train_dir, feature_dict,
+def collect_feature_data(filepath, feature_dict,
                           omit, b_cutoff=240,
-                          split_train_test_data=False,
                           verb=False, outdir='./outputs/'):
     """
-    collect training and testing data from a specified directory
+    collect feature data from a specified directory
 
-    :param train_dir: directory containing all training data
+    :param filepath: directory containing all data
     :param feature_dict: dict of strings specifying color channel for features
     :param omit: pixel values to omit from calculation of features, ex [0, 255]
     :param b_cutoff: blue color channel cutoff for glare removal
-    :param split_train_test_data: enable to split training and test data
     :param verb: verbose mode to save intermediate files and figures
     :param outdir: directory where output files are saved
-    :return: x_train, x_test, y_train, y_test, feature_dict, feature_labels
+    :return: feature_array, target_array, feature_labels
     """
     from preprocess import read_tiff, rgb_preprocess
     from feature_extraction import extract_features
-    from sklearn.model_selection import train_test_split
     import numpy as np
 
-    msg = '\nTRAINING'
-    logging.info(msg)
-    print(msg)
-    msg = 'Training data directory: %s' % train_dir
-    logging.info(msg)
-    print(msg)
-    msg = 'Split training and test data: %s\n' % split_train_test_data
+    msg = 'Data location: %s' % filepath
     logging.info(msg)
     print(msg)
 
-    msg = 'SELECTED FEATURES:'
+    msg = '\nSELECTED FEATURES:'
     logging.info(msg)
     print(msg)
     msg = 'Color channel median: %s' % feature_dict['med']
@@ -59,24 +50,24 @@ def collect_training_data(train_dir, feature_dict,
     if feature_dict['ypct']:
         n_feat += 1
 
-    train_files = os.listdir(train_dir)
-    n_train = len(train_files)
+    data_files = os.listdir(filepath)
+    n_datasets = len(data_files)
 
-    target_array = np.zeros(n_train)
-    feature_array = np.zeros((n_train, n_feat))
+    target_array = np.zeros(n_datasets)
+    feature_array = np.zeros((n_datasets, n_feat))
 
-    for i in range(len(train_files)):
+    for i in range(len(data_files)):
 
         msg = 'Extracting features from ' \
-              + train_files[i] + ' (%d/%d)' % (i + 1, len(train_files))
+              + data_files[i] + ' (%d/%d)' % (i + 1, len(data_files))
         logging.info(msg)
         print(msg)
 
         # directory to store outputs for training set
-        train_outdir = os.path.join(outdir, 'training',
-                                os.path.splitext(train_files[i])[0])
+        feat_outdir = os.path.join(outdir, 'feature_data',
+                                   os.path.splitext(data_files[i])[0])
 
-        rgb = read_tiff(filename=(train_dir + train_files[i]))
+        rgb = read_tiff(filename=(filepath + data_files[i]))
         rgb = rgb_preprocess(rgb, exclude_bg=True,
                              upper_lim=(0, 0, b_cutoff))
 
@@ -88,23 +79,45 @@ def collect_training_data(train_dir, feature_dict,
                                        pct_yellow=feature_dict['ypct'],
                                        omit=omit,
                                        verb=verb,
-                                       outdir=train_outdir)
+                                       outdir=feat_outdir)
 
         feature_array[i, :] = features
 
-        if 'dys' in train_files[i]:
+        if 'dys' in data_files[i]:
             target_array[i] = 1
-        else:
+        elif 'heal' in data_files[i]:
             target_array[i] = -1
+        else:
+            target_array[i] = None
+
         msg = 'Target label (1 dysplasia, -1 healthy): %d' % \
               target_array[i]
         logging.debug(msg)
 
-    if split_train_test_data:
+    return feature_array, target_array, l
+
+
+def split_data(feature_array, target_array, split=False):
+    """
+    split data into training and testing (test=train data if split is false)
+
+    :param feature_array: N x M array of M features per N datasets
+    :param target_array: N targets associated with each feature set
+    :param split: enable to split data into separate train and test
+    :return: training and test feature sets with corresponding targets
+    """
+    from sklearn.model_selection import train_test_split
+    import numpy as np
+
+    msg = 'Split data into training and test: %s\n' % split
+    logging.info(msg)
+    print(msg)
+
+    if split:
         # Split data in to training and testing (best practice)
         class_diff = False
         # Ensure training or test data don't have uniform class
-        while class_diff:
+        while class_diff == False:
             x_train, x_test, y_train, y_test \
                 = train_test_split(feature_array, target_array, test_size=0.3)
             if (np.std(y_train) != 0) & (np.std(y_test) != 0):
@@ -117,12 +130,12 @@ def collect_training_data(train_dir, feature_dict,
         x_test = feature_array
         y_test = target_array
 
-    return x_train, x_test, y_train, y_test, feature_dict, l
+    return x_train, x_test, y_train, y_test
 
 
-def output_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
+def classifier_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
     """
-    calculate and save output metrics to specified directory
+    calculate and save classifier metrics to specified directory
 
     :param x_test: test data feature set (data set # x features)
     :param y_test: test data true targets
@@ -147,17 +160,16 @@ def output_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
     cm = gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
                               verb=True, outfile=outfile)
 
-    accuracy = calc_accuracy(y_test, y_pred)
-    f1 = calc_f1_score(y_test, y_pred)
-
     msg = '\n***** RESULTS *****'
     logging.info(msg)
     print(msg)
 
+    accuracy = calc_accuracy(y_test, y_pred)
     msg = 'Classification accuracy = %.1f ' % accuracy
     logging.info(msg)
     print(msg)
 
+    f1 = calc_f1_score(y_test, y_pred)
     msg = 'F1-score on test set = %.1f ' % f1
     logging.info(msg)
     print(msg)
@@ -216,18 +228,25 @@ if __name__ == "__main__":
                          'otsu': otsu_feats,
                          'ypct': pct_yellow}
 
-        # perform feature extraction and collect training data
-        x_train, x_test, y_train, y_test, feature_types, feature_labels = \
-            collect_training_data(data_path, feature_types,
-                                  omit=omit_pix, b_cutoff=b_lim,
-                                  split_train_test_data=False,
-                                  verb=verb, outdir=outdir)
+        msg = '\nTRAINING'
+        logging.info(msg)
+        print(msg)
 
         pickle.dump(feature_types, open(featset_filename, 'wb'))
 
         msg = 'Training feature set saved: %s' % featset_filename
         logging.info(msg)
         print(msg)
+
+        # perform feature extraction and collect training data
+        feature_array, target_array, feature_labels = \
+            collect_feature_data(data_path, feature_types,
+                                 omit=omit_pix, b_cutoff=b_lim,
+                                 verb=verb, outdir=outdir)
+
+        x_train, x_test, y_train, y_test = split_data(feature_array,
+                                                      target_array,
+                                                      split_train_test)
 
         # Train SVM
         msg = 'Training SVM classifier...'
@@ -242,7 +261,7 @@ if __name__ == "__main__":
         y_pred = class_predict(x_test, model_filename)
 
         # Calculate and save output metrics
-        output_metrics(x_test, y_test, y_pred, outdir=outdir)
+        classifier_metrics(x_test, y_test, y_pred, outdir=outdir)
         
     else:
         from preprocess import read_tiff, rgb_preprocess

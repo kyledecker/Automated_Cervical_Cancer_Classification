@@ -114,7 +114,7 @@ def plot_features(features, targets, labels, outfile='feat_plot.png'):
 
 
 if __name__ == "__main__":
-    from main import collect_training_data
+    from main import collect_feature_data
 
     print('\nFEATURE SPACE VISUALIZATION')
     args = parse_cli_visualizer()
@@ -146,12 +146,11 @@ if __name__ == "__main__":
         print(msg)
         sys.exit()
 
-    x_train, x_test, y_train, y_test, feature_types, feature_labels = \
-        collect_training_data(data_path, feature_types,
+    feature_array, target_array, feature_labels = \
+        collect_feature_data(data_path, feature_types,
                               omit=omit_pix, b_cutoff=b_lim,
-                              split_train_test_data=False,
                               verb=False)
 
     print('\nOUTPUTS')
-    plot_features(x_train, y_train, feature_labels, outfile)
+    plot_features(feature_array, target_array, feature_labels, outfile)
     print('\n')
