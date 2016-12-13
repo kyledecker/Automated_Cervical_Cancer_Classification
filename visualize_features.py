@@ -115,10 +115,7 @@ def plot_features(features, targets, labels, outfile='feat_plot.png'):
 
 
 if __name__ == "__main__":
-    from preprocess import read_tiff, rgb_preprocess
-    from feature_extraction import extract_features
-    from classification_model import *
-    from classification_model_metrics import *
+    from main import collect_training_data
 
     print('\nFEATURE SPACE VISUALIZATION')
     args = parse_cli_visualizer()
@@ -129,10 +126,34 @@ if __name__ == "__main__":
     variance_feats = args.var_feats
     mode_feats = args.mode_feats
     otsu_feats = args.otsu_feats
-    ypct_feat = args.ypct_feat
+    pct_yellow = args.ypct_feat
     omit_pix = [0, 255]
+    b_lim = 240
 
-    n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
+    feature_types = {'med': median_feats,
+                     'var': variance_feats,
+                     'mode': mode_feats,
+                     'otsu': otsu_feats,
+                     'ypct': pct_yellow}
+
+    n_feat = len(feature_types['med'] + feature_types['var'] +
+                 feature_types['mode'] + feature_types['otsu'])
+    if feature_types['ypct']:
+        n_feat += 1
+
+    if n_feat != 2:
+        msg = 'ERROR script compatible with only 2D feature sets. Actual # ' \
+              'features = %d' % n_feat
+        print(msg)
+        sys.exit()
+
+    x_train, x_test, y_train, y_test, feature_types, feature_labels = \
+        collect_training_data(data_path, feature_types,
+                              omit=omit_pix, b_cutoff=b_lim,
+                              split_train_test_data=False,
+                              verb=False)
+
+    """n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
     if ypct_feat:
         n_feat += 1
 
@@ -175,8 +196,8 @@ if __name__ == "__main__":
         if 'dys' in train_files[i]:
             target_array[i] = 1
         else:
-            target_array[i] = -1
+            target_array[i] = -1"""
 
     print('\nOUTPUTS')
-    plot_features(feature_array, target_array, l, outfile)
+    plot_features(x_train, y_train, feature_labels, outfile)
     print('\n')

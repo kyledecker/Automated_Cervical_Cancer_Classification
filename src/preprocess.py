@@ -163,7 +163,7 @@ def nan_upper_bound(rgb, lim=(255, 255, 255), verb=False):
     return rgb
 
 
-def nan_yellow_pixels(rgb, rlims=[200, 255], glims=[150, 255], blims=[0, 150],
+def nan_yellow_pixels(rgb, rlims=[150, 255], glims=[100, 255], blims=[0, 150],
                       gb_delta=30, verb=False):
     """
     set pixel values in range to NaN with restriction that B < G
