@@ -1,7 +1,6 @@
 import os
 import sys
 import logging
-import numpy as np
 sys.path.insert(0, os.path.abspath('./src/'))
 
 
@@ -152,51 +151,6 @@ if __name__ == "__main__":
                               omit=omit_pix, b_cutoff=b_lim,
                               split_train_test_data=False,
                               verb=False)
-
-    """n_feat = len(median_feats+variance_feats+mode_feats+otsu_feats)
-    if ypct_feat:
-        n_feat += 1
-
-    if n_feat != 2:
-        msg = 'ERROR script compatible with only 2D feature sets. Actual # ' \
-              'features = %d' % n_feat
-        print(msg)
-        sys.exit()
-
-    # threshold for glare filter
-    b_thresh = 240
-
-    train_files = os.listdir(data_path)
-    n_train = len(train_files)
-
-    target_array = np.zeros(n_train)
-    feature_array = np.zeros((n_train, n_feat))
-
-    for i in range(len(train_files)):
-
-        msg = 'Extracting features from ' \
-              + train_files[i] + ' (%d/%d)' % (i + 1, len(train_files))
-        print(msg)
-
-        rgb = read_tiff(filename=(data_path + train_files[i]))
-        rgb = rgb_preprocess(rgb, verb=False, exclude_bg=True,
-                             upper_lim=(0, 0, b_thresh))
-
-        features, l = extract_features(rgb,
-                                       median_ch=median_feats,
-                                       variance_ch=variance_feats,
-                                       mode_ch=mode_feats,
-                                       otsu_ch=otsu_feats,
-                                       pct_yellow=ypct_feat,
-                                       omit=omit_pix,
-                                       verb=False)
-
-        feature_array[i, :] = features
-
-        if 'dys' in train_files[i]:
-            target_array[i] = 1
-        else:
-            target_array[i] = -1"""
 
     print('\nOUTPUTS')
     plot_features(x_train, y_train, feature_labels, outfile)

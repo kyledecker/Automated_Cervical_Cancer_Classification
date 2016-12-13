@@ -1,7 +1,6 @@
 import os
 import sys
 import logging
-import numpy as np
 sys.path.insert(0, os.path.abspath('./src/'))
 
 
@@ -121,11 +120,62 @@ def collect_training_data(train_dir, feature_dict,
     return x_train, x_test, y_train, y_test, feature_dict, l
 
 
-if __name__ == "__main__":
+def output_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
+    """
+    calculate and save output metrics to specified directory
 
-    from feature_extraction import calc_pct_yellow
+    :param x_test: test data feature set (data set # x features)
+    :param y_test: test data true targets
+    :param y_pred: predicted targets
+    :param outdir: directory where output files are saved
+    :return: roc, auc, cm, accuracy, f1
+    """
+    from classification_model_metrics import calc_ROC, calc_AUC, \
+        gen_confusion_matrix, calc_accuracy, calc_f1_score
+
+    msg = '\nOUTPUTS'
+    logging.info(msg)
+    print(msg)
+
+    soft_predictions = svm.predict_proba(x_test)
+
+    outfile = os.path.join(outdir, 'roc.png')
+    roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
+    auc = calc_AUC(y_test, soft_predictions[:, 1])
+
+    outfile = os.path.join(outdir, 'confusionmat.png')
+    cm = gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
+                              verb=True, outfile=outfile)
+
+    accuracy = calc_accuracy(y_test, y_pred)
+    f1 = calc_f1_score(y_test, y_pred)
+
+    msg = '\n***** RESULTS *****'
+    logging.info(msg)
+    print(msg)
+
+    msg = 'Classification accuracy = %.1f ' % accuracy
+    logging.info(msg)
+    print(msg)
+
+    msg = 'F1-score on test set = %.1f ' % f1
+    logging.info(msg)
+    print(msg)
+
+    msg = 'AUC on test set = %.1f ' % auc
+    logging.info(msg)
+    print(msg)
+
+    msg = '*Additional results in outputs folder.' \
+          '\n*******************\n'
+    logging.info(msg)
+    print(msg)
+
+    return roc, auc, cm, accuracy, f1
+
+
+if __name__ == "__main__":
     from classification_model import *
-    from classification_model_metrics import *
     from parse_cli import parse_cli
     import pickle
 
@@ -151,7 +201,6 @@ if __name__ == "__main__":
     b_lim = 240
 
     if train:
-        from accessory import create_dir
 
         split_train_test = args.splitting
         data_path = args.t_dir
@@ -167,13 +216,13 @@ if __name__ == "__main__":
                          'otsu': otsu_feats,
                          'ypct': pct_yellow}
 
+        # perform feature extraction and collect training data
         x_train, x_test, y_train, y_test, feature_types, feature_labels = \
             collect_training_data(data_path, feature_types,
                                   omit=omit_pix, b_cutoff=b_lim,
                                   split_train_test_data=False,
                                   verb=verb, outdir=outdir)
 
-        create_dir(featset_filename)
         pickle.dump(feature_types, open(featset_filename, 'wb'))
 
         msg = 'Training feature set saved: %s' % featset_filename
@@ -193,43 +242,13 @@ if __name__ == "__main__":
         y_pred = class_predict(x_test, model_filename)
 
         # Calculate and save output metrics
-        msg = '\nOUTPUTS'
-        logging.info(msg)
-        print(msg)
-
-        soft_predictions = svm.predict_proba(x_test)
-        outfile = os.path.join(outdir, 'roc.png')
-        roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
-        auc = calc_AUC(y_test, soft_predictions[:, 1])
-
-        outfile = os.path.join(outdir, 'confusionmat.png')
-        gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
-                             verb=True, outfile=outfile)
-
-        msg = '\n***** RESULTS *****'
-        logging.info(msg)
-        print(msg)
-
-        accuracy = calc_accuracy(y_test, y_pred)
-        msg = 'Classification accuracy = %.1f ' % accuracy
-        logging.info(msg)
-        print(msg)
-
-        f1 = calc_f1_score(y_test, y_pred)
-        msg = 'F1-score on test set = %.1f ' % f1
-        logging.info(msg)
-        print(msg)
-
-        msg = 'AUC on test set = %.1f ' % auc
-        logging.info(msg)
-        print(msg)
-
-        msg = '*Additional results in outputs folder.' \
-              '\n*******************\n'
-        logging.info(msg)
-        print(msg)
+        output_metrics(x_test, y_test, y_pred, outdir=outdir)
         
     else:
+        from preprocess import read_tiff, rgb_preprocess
+        from feature_extraction import extract_features
+        from feature_extraction import calc_pct_yellow
+
         # gather prediction specific CLI
         unknown_file = args.f
 
@@ -260,7 +279,7 @@ if __name__ == "__main__":
 
         rgb = read_tiff(filename=unknown_file)
         rgb = rgb_preprocess(rgb, exclude_bg=True,
-                             upper_lim=(0, 0, b_thresh))
+                             upper_lim=(0, 0, b_lim))
 
         features, l = extract_features(rgb,
                                        median_ch=feature_types['med'],
