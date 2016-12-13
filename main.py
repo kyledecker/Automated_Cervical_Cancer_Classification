@@ -104,7 +104,7 @@ def collect_training_data(train_dir, feature_dict,
         # Split data in to training and testing (best practice)
         class_diff = False
         # Ensure training or test data don't have uniform class
-        while class_diff:
+        while (class_diff == False):
             x_train, x_test, y_train, y_test \
                 = train_test_split(feature_array, target_array, test_size=0.3)
             if (np.std(y_train) != 0) & (np.std(y_test) != 0):
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         x_train, x_test, y_train, y_test, feature_types, feature_labels = \
             collect_training_data(data_path, feature_types,
                                   omit=omit_pix, b_cutoff=b_lim,
-                                  split_train_test_data=False,
+                                  split_train_test_data=split_train_test,
                                   verb=verb, outdir=outdir)
 
         pickle.dump(feature_types, open(featset_filename, 'wb'))

@@ -26,15 +26,14 @@ def parse_cli():
 
     par.add_argument("--verbose",
                      dest="v",
-                     help="Display Image Histograms and Features <True/False>",
-                     type=str,
-                     default='False')
+                     help="Display Image Histograms and Features",
+                     action='store_true')
 
     par.add_argument("--train",
                      dest="t",
-                     help="Train the Classifier <True/False>",
-                     type=str,
-                     default='False')
+                     help="Train the Classifier",
+                     action='store_true')
+
 
     par.add_argument("--model_filename",
                      dest="model",
@@ -48,10 +47,8 @@ def parse_cli():
 
     par.add_argument("--out_of_bag_testing",
                      dest="splitting",
-                     help="Use out of bag samples for classification metrics "
-                          "<True/False>",
-                     type=str,
-                     default='False')
+                     help="Use out of bag samples for classification metrics",
+                     action='store_true')
 
     par.add_argument("--median_features",
                      dest="med_feats",
@@ -77,47 +74,15 @@ def parse_cli():
 
     par.add_argument("--yellow_feature",
                      dest="ypct_feat",
-                     help="Use percent yellow pixel feature <True/False>",
-                     type=str,
-                     default='False')
+                     help="Use percent yellow pixel feature",
+                     action='store_true')
 
     par.add_argument("--log",
                      dest="l",
                      help="Logging Level <DEBUG, INFO, WARNING, ERROR>",
                      default='DEBUG')
 
+    #par.parse_args('--train --out_of_bag_testing'.split())
     args = par.parse_args()
 
-    args.v = parse_bool(args.v)
-    args.t = parse_bool(args.t)
-    args.ypct_feat = parse_bool(args.ypct_feat)
-    args.splitting = parse_bool(args.splitting)
-
     return args
-
-
-def parse_bool(inpar):
-    """
-    convert CLI True or False string into boolean
-
-    :param inpar: input True or False string (True/False or T/F)
-    :return: outpar (bool)
-    """
-    import sys
-    msg = 'ERROR [parse_cli] CLI must be either True/False. ' \
-          'Exiting script...'
-
-    try:
-        if inpar.lower() == 'true' or inpar.lower() == 't':
-            outpar = True
-        elif inpar.lower() == 'false' or inpar.lower() == 'f':
-            outpar = False
-        else:
-            print(msg)
-            sys.exit()
-
-    except ValueError:
-        print(msg)
-        sys.exit()
-
-    return outpar
