@@ -132,8 +132,14 @@ if __name__ == "__main__":
 
         if split_train_test:
             # Split data in to training and testing (best practice)
-            x_train, x_test, y_train, y_test \
-                = train_test_split(feature_array, target_array, test_size=0.3)
+            class_diff = False
+            # Ensure training or test data don't have uniform class
+            while class_diff == False:
+                x_train, x_test, y_train, y_test \
+                    = train_test_split(feature_array, target_array, test_size=0.3)
+                if (np.std(y_train) != 0) & (np.std(y_test) != 0):
+                    class_diff = True
+            
         else:
             # Use same data to train and test SVM
             x_train = feature_array
