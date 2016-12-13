@@ -57,6 +57,8 @@ def collect_feature_data(filepath, feature_dict,
         data_dir = filepath
     except NotADirectoryError:
         data_dir = os.path.dirname(filepath)
+        if data_dir == '.':
+            data_dir = ''
         data_files = [os.path.split(filepath)[-1], ]
 
     n_datasets = len(data_files)
@@ -125,7 +127,7 @@ def split_data(feature_array, target_array, split=False):
         # Split data in to training and testing (best practice)
         class_diff = False
         # Ensure training or test data don't have uniform class
-        while class_diff == False:
+        while (class_diff == False):
             x_train, x_test, y_train, y_test \
                 = train_test_split(feature_array, target_array, test_size=0.3)
             if (np.std(y_train) != 0) & (np.std(y_test) != 0):
@@ -173,7 +175,7 @@ def classifier_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
     print(msg)
 
     accuracy = calc_accuracy(y_test, y_pred)
-    msg = 'Classification accuracy = %.1f ' % accuracy
+    msg = 'Classification accuracy = %.1f %%' % accuracy
     logging.info(msg)
     print(msg)
 
@@ -186,12 +188,104 @@ def classifier_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
     logging.info(msg)
     print(msg)
 
-    msg = '*Additional results in outputs folder.' \
-          '\n*******************\n'
+    msg = '*Additional results in outputs folder.\n' \
+          '*******************\n'
     logging.info(msg)
     print(msg)
 
     return roc, auc, cm, accuracy, f1
+
+
+def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
+                       outdir='./outputs/'):
+    """
+
+    :param filepath:
+    :param y_pred:
+    :param y_test:
+    :param b_cutoff:
+    :param outdir:
+    :return:
+    """
+    from preprocess import read_tiff, rgb_preprocess
+    from feature_extraction import calc_pct_yellow
+    from classification_model_metrics import calc_accuracy
+
+    try:
+        all_files = os.listdir(filepath)
+        data_files = [f for f in all_files if '.tif' in f]
+        data_dir = filepath
+    except NotADirectoryError:
+        data_dir = os.path.dirname(filepath)
+        if data_dir == '.':
+            data_dir = ''
+        data_files = [os.path.split(filepath)[-1], ]
+
+    # output metrics and calculate percent lesion for dysplasia predictions
+    for i in range(len(data_files)):
+
+        msg = '\n<<< %s >>>' % (data_files[i])
+        logging.info(msg)
+        print(msg)
+
+        msg = '\nOUTPUTS'
+        logging.info(msg)
+        print(msg)
+
+        if y_pred[i] == 1:
+            rgb = read_tiff(filename=(data_dir + data_files[i]))
+            rgb = rgb_preprocess(rgb, exclude_bg=True,
+                                 upper_lim=(0, 0, b_cutoff))
+
+            filename = os.path.splitext(data_files[i])[0] + '_labeled.png'
+            outfile = os.path.join(outdir, filename)
+            pct_les = calc_pct_yellow(rgb, verb=True, outfile=outfile)
+
+            # output prediction results
+            msg = '\n***** RESULTS *****'
+            logging.info(msg)
+            print(msg)
+
+            msg = "SVM Classification Result = Dysplasia"
+            logging.info(msg)
+            print(msg)
+
+            msg = "Percent Lesion = %.1f %%" % pct_les
+            logging.info(msg)
+            print(msg)
+
+        elif y_pred[i] == -1:
+            msg = '\n***** RESULTS *****'
+            logging.info(msg)
+            print(msg)
+
+            msg = "SVM Classification Result = Healthy"
+            logging.info(msg)
+            print(msg)
+
+        if y_test[i] == 1:
+            msg = "True Target = Dysplasia"
+        elif y_test[i] == -1:
+            msg = "True Target = Healthy"
+        else:
+            msg = "True Target = N/A"
+        logging.info(msg)
+        print(msg)
+
+        msg = '*******************\n\n'
+        logging.info(msg)
+        print(msg)
+
+    # if targets are known, output prediction accuracy
+    if not (0 in y_test):
+        accuracy = calc_accuracy(y_test, y_pred)
+        msg = 'Prediction accuracy = %.1f %%\n' % accuracy
+        logging.info(msg)
+        print(msg)
+
+    msg = '*Additional results in outputs folder.\n'
+    logging.info(msg)
+    print(msg)
 
 
 if __name__ == "__main__":
@@ -272,12 +366,8 @@ if __name__ == "__main__":
         classifier_metrics(x_test, y_test, y_pred, outdir=outdir)
         
     else:
-        from preprocess import read_tiff, rgb_preprocess
-        from feature_extraction import extract_features
-        from feature_extraction import calc_pct_yellow
-
         # gather prediction specific CLI
-        unknown_file = args.f
+        unknown_data = args.f
 
         msg = '\nPREDICTION'
         logging.info(msg)
@@ -304,52 +394,13 @@ if __name__ == "__main__":
             logging.error(msg)
             sys.exit()
 
-        rgb = read_tiff(filename=unknown_file)
-        rgb = rgb_preprocess(rgb, exclude_bg=True,
-                             upper_lim=(0, 0, b_lim))
+        feature_array, target_array, feature_labels = \
+            collect_feature_data(unknown_data, feature_types,
+                                 omit=omit_pix, b_cutoff=b_lim,
+                                 verb=verb, outdir=outdir)
+        # perform prediction
+        y_pred = class_predict(feature_array, model_filename)
 
-        features, l = extract_features(rgb,
-                                       median_ch=feature_types['med'],
-                                       variance_ch=feature_types['var'],
-                                       mode_ch=feature_types['mode'],
-                                       otsu_ch=feature_types['otsu'],
-                                       pct_yellow=feature_types['ypct'],
-                                       omit=omit_pix,
-                                       verb=verb,
-                                       outdir=pred_outdir)
-
-        y_pred = class_predict(features.reshape(1, -1), model_filename)
-
-        msg = '\nOUTPUTS'
-        logging.info(msg)
-        print(msg)
-
-        if y_pred == 1:
-            outfile = os.path.join(pred_outdir, 'labeled_lesion.png')
-            pct_les = calc_pct_yellow(rgb, verb=True, outfile=outfile)
-
-            msg = '\n***** RESULTS *****'
-            logging.info(msg)
-            print(msg)
-
-            msg = "SVM Classification Result = Dysplasia"
-            logging.info(msg)
-            print(msg)
-
-            msg = "Percent Lesion = %.1f %%" % pct_les
-            logging.info(msg)
-            print(msg)
-
-        else:
-            msg = '\n***** RESULTS *****'
-            logging.info(msg)
-            print(msg)
-
-            msg = "SVM Classification Result = Healthy"
-            logging.info(msg)
-            print(msg)
-
-        msg = '*Additional results in outputs folder.' \
-              '\n*******************\n'
-        logging.info(msg)
-        print(msg)
+        # output prediction metrics and save lesion-labeled images
+        prediction_metrics(unknown_data, y_pred, target_array, b_cutoff=b_lim,
+                           outdir=pred_outdir)
