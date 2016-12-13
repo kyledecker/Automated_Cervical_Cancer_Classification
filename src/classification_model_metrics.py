@@ -198,3 +198,151 @@ def plot_confusion_matrix(cm, classes,
     create_dir(outfile)
     plt.savefig(outfile)
     plt.clf()
+
+
+def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
+                       outdir='./outputs/'):
+    """
+    calculate prediction metrics and generate images with lesions labeled
+
+    :param filepath: path to tif file or directory containing tif files
+    :param y_pred: predicted targets
+    :param y_test: true targets, set to zeros if targets unknown
+    :param b_cutoff: blue color channel cutoff for glare removal
+    :param outdir: directory where output files are saved
+    """
+    from preprocess import read_tiff, rgb_preprocess
+    from feature_extraction import calc_pct_yellow
+    from classification_model_metrics import calc_accuracy
+    import os
+
+    try:
+        all_files = os.listdir(filepath)
+        data_files = [f for f in all_files if '.tif' in f]
+        data_dir = filepath
+    except NotADirectoryError:
+        data_dir = os.path.dirname(filepath)
+        if data_dir == '.':
+            data_dir = ''
+        data_files = [os.path.split(filepath)[-1], ]
+
+    # output metrics and calculate percent lesion for dysplasia predictions
+    for i in range(len(data_files)):
+
+        msg = '\n<<< %s >>>' % (data_files[i])
+        logging.info(msg)
+        print(msg)
+
+        msg = '\nOUTPUTS'
+        logging.info(msg)
+        print(msg)
+
+        if y_pred[i] == 1:
+            rgb = read_tiff(filename=(data_dir + data_files[i]))
+            rgb = rgb_preprocess(rgb, exclude_bg=True,
+                                 upper_lim=(0, 0, b_cutoff))
+
+            filename = os.path.splitext(data_files[i])[0] + '_labeled.png'
+            outfile = os.path.join(outdir, filename)
+            pct_les = calc_pct_yellow(rgb, verb=True, outfile=outfile)
+
+            # output prediction results
+            msg = '\n***** RESULTS *****'
+            logging.info(msg)
+            print(msg)
+
+            msg = "SVM Classification Result = Dysplasia"
+            logging.info(msg)
+            print(msg)
+
+            msg = "Percent Lesion = %.1f %%" % pct_les
+            logging.info(msg)
+            print(msg)
+
+        elif y_pred[i] == -1:
+            msg = '\n***** RESULTS *****'
+            logging.info(msg)
+            print(msg)
+
+            msg = "SVM Classification Result = Healthy"
+            logging.info(msg)
+            print(msg)
+
+        if y_test[i] == 1:
+            msg = "True Classification = Dysplasia"
+        elif y_test[i] == -1:
+            msg = "True Classification = Healthy"
+        else:
+            msg = "True Classification = N/A"
+        logging.info(msg)
+        print(msg)
+
+        msg = '*******************\n\n'
+        logging.info(msg)
+        print(msg)
+
+    # if targets are known, output prediction accuracy
+    if not (0 in y_test):
+        accuracy = calc_accuracy(y_test, y_pred)
+        msg = 'Prediction accuracy = %.1f %%\n' % accuracy
+        logging.info(msg)
+        print(msg)
+
+    msg = '*Additional results in outputs folder.\n'
+    logging.info(msg)
+    print(msg)
+
+
+def classifier_metrics(model, x_test, y_test, y_pred, outdir='./outputs/'):
+    """
+    calculate and save classifier metrics to specified directory
+
+    :param model: trained svm model
+    :param x_test: test data feature set (data set # x features)
+    :param y_test: test data true targets
+    :param y_pred: predicted targets
+    :param outdir: directory where output files are saved
+    :return: roc, auc, cm, accuracy, f1
+    """
+    from classification_model_metrics import calc_ROC, calc_AUC, \
+        gen_confusion_matrix, calc_accuracy, calc_f1_score
+    import os
+
+    msg = '\nOUTPUTS'
+    logging.info(msg)
+    print(msg)
+
+    soft_predictions = model.predict_proba(x_test)
+
+    outfile = os.path.join(outdir, 'roc.png')
+    roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
+    auc = calc_AUC(y_test, soft_predictions[:, 1])
+
+    outfile = os.path.join(outdir, 'confusionmat.png')
+    cm = gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
+                              verb=True, outfile=outfile)
+
+    msg = '\n***** RESULTS *****'
+    logging.info(msg)
+    print(msg)
+
+    accuracy = calc_accuracy(y_test, y_pred)
+    msg = 'Classification accuracy = %.1f %%' % accuracy
+    logging.info(msg)
+    print(msg)
+
+    f1 = calc_f1_score(y_test, y_pred)
+    msg = 'F1-score on test set = %.1f ' % f1
+    logging.info(msg)
+    print(msg)
+
+    msg = 'AUC on test set = %.1f ' % auc
+    logging.info(msg)
+    print(msg)
+
+    msg = '*Additional results in outputs folder.\n' \
+          '*******************\n'
+    logging.info(msg)
+    print(msg)
+
+    return roc, auc, cm, accuracy, f1

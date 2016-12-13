@@ -330,3 +330,159 @@ def extract_features(rgb, median_ch='', variance_ch='',
     feature_labels = np.append(feature_labels, ypct_label)
 
     return features, feature_labels
+
+
+def plot_features(features, targets, labels, outfile='features.png'):
+    """
+    visualize 2D feature space for data set with known targets
+
+    :param features: N x 2 array of features from N data sets
+    :param targets: target labels corresponding to each set of features
+    :param labels: labels for each feature
+    :param outfile: save location of output feature plot
+    """
+    import numpy as np
+    import matplotlib.pyplot as plt
+    from accessory import create_dir
+
+    target_types = np.unique(targets)
+    if len(target_types) > 2:
+        msg = 'ERROR [plot_features] Function only compatible with 2 targets.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    if np.shape(features)[1] > 2:
+        msg = 'ERROR [plot_features] Function only compatible with 2 features.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    if np.shape(features)[0] != len(targets):
+        msg = 'ERROR [plot_features] Mismatch between number of target ' \
+              'labels and feature sets.'
+        logging.error(msg)
+        print(msg)
+        sys.exit()
+
+    features0 = features[targets == target_types[0], :]
+    features1 = features[targets == target_types[1], :]
+
+    h0 = plt.scatter(features0[:, 0], features0[:, 1], marker='o', c='red',
+                     label=target_types[0])
+    h1 = plt.scatter(features1[:, 0], features1[:, 1], marker='o',
+                     c='blue',
+                     label=target_types[1])
+    plt.xlabel(labels[0])
+    plt.ylabel(labels[1])
+    plt.legend(handles=[h0, h1], loc=4)
+    plt.grid(True)
+    plt.axis('tight')
+
+    create_dir(outfile)
+    msg = '[plot_features] Feature space plot saved: %s' % outfile
+    print(msg)
+    plt.savefig(outfile)
+
+
+def collect_feature_data(filepath, feature_dict,
+                          omit, b_cutoff=240,
+                          verb=False, outdir='./outputs/'):
+    """
+    collect feature data from a specified directory
+
+    :param filepath: path to tif file or directory containing tif files
+    :param feature_dict: dict of strings specifying color channel for features
+    :param omit: pixel values to omit from calculation of features, ex [0, 255]
+    :param b_cutoff: blue color channel cutoff for glare removal
+    :param verb: verbose mode to save intermediate files and figures
+    :param outdir: directory where output files are saved
+    :return: feature_array, target_array, feature_labels
+    """
+    from preprocess import read_tiff, rgb_preprocess
+    from feature_extraction import extract_features
+    import numpy as np
+
+    msg = 'Data location: %s' % filepath
+    logging.info(msg)
+    print(msg)
+
+    msg = '\nSELECTED FEATURES:'
+    logging.info(msg)
+    print(msg)
+    msg = 'Color channel median: %s' % feature_dict['med']
+    logging.info(msg)
+    print(msg)
+    msg = 'Color channel variance: %s' % feature_dict['var']
+    logging.info(msg)
+    print(msg)
+    msg = 'Color channel mode: %s' % feature_dict['mode']
+    logging.info(msg)
+    print(msg)
+    msg = 'Color channel Otsu: %s' % feature_dict['otsu']
+    logging.info(msg)
+    print(msg)
+    msg = 'Yellow pixel fraction: %s\n' % feature_dict['ypct']
+    logging.info(msg)
+    print(msg)
+
+    n_feat = len(feature_dict['med'] + feature_dict['var'] +
+                 feature_dict['mode'] + feature_dict['otsu'])
+    if feature_dict['ypct']:
+        n_feat += 1
+
+    # extract all data files from directory or directly use specified tif
+    try:
+        all_files = os.listdir(filepath)
+        data_files = [f for f in all_files if '.tif' in f]
+        data_dir = filepath
+    except NotADirectoryError:
+        data_dir = os.path.dirname(filepath)
+        if data_dir == '.':
+            data_dir = ''
+        data_files = [os.path.split(filepath)[-1], ]
+
+    n_datasets = len(data_files)
+
+    target_array = np.zeros(n_datasets)
+    feature_array = np.zeros((n_datasets, n_feat))
+
+    for i in range(len(data_files)):
+
+        msg = 'Extracting features from ' \
+              + data_files[i] + ' (%d/%d)' % (i + 1, len(data_files))
+        logging.info(msg)
+        print(msg)
+
+        # directory to store outputs for training set
+        feat_outdir = os.path.join(outdir, 'feature_data',
+                                   os.path.splitext(data_files[i])[0])
+
+        rgb = read_tiff(filename=(data_dir + data_files[i]))
+        rgb = rgb_preprocess(rgb, exclude_bg=True,
+                             upper_lim=(0, 0, b_cutoff))
+
+        features, l = extract_features(rgb,
+                                       median_ch=feature_dict['med'],
+                                       variance_ch=feature_dict['var'],
+                                       mode_ch=feature_dict['mode'],
+                                       otsu_ch=feature_dict['otsu'],
+                                       pct_yellow=feature_dict['ypct'],
+                                       omit=omit,
+                                       verb=verb,
+                                       outdir=feat_outdir)
+
+        feature_array[i, :] = features
+
+        if 'dys' in data_files[i]:
+            target_array[i] = 1
+        elif 'heal' in data_files[i]:
+            target_array[i] = -1
+        else:
+            target_array[i] = 0
+
+        msg = 'Target label (1 dysplasia, -1 healthy): %d' % \
+              target_array[i]
+        logging.debug(msg)
+
+    return feature_array, target_array, l
