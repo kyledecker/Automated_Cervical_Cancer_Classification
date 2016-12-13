@@ -80,3 +80,39 @@ def class_predict(test_features, model_filename):
     class_pred = clf.predict(test_features)
 
     return class_pred
+
+
+def split_data(feature_array, target_array, split=False):
+    """
+    split data into training and testing (test=train data if split is false)
+
+    :param feature_array: N x M array of M features per N datasets
+    :param target_array: N targets associated with each feature set
+    :param split: enable to split data into separate train and test
+    :return: training and test feature sets with corresponding targets
+    """
+    from sklearn.model_selection import train_test_split
+    import numpy as np
+
+    msg = 'Split data into training and test: %s\n' % split
+    logging.info(msg)
+    print(msg)
+
+    if split:
+        # Split data in to training and testing (best practice)
+        class_diff = False
+        # Ensure training or test data don't have uniform class
+        while (class_diff == False):
+            x_train, x_test, y_train, y_test \
+                = train_test_split(feature_array, target_array, test_size=0.3)
+            if (np.std(y_train) != 0) & (np.std(y_test) != 0):
+                class_diff = True
+
+    else:
+        # Use same data to train and test SVM
+        x_train = feature_array
+        y_train = target_array
+        x_test = feature_array
+        y_test = target_array
+
+    return x_train, x_test, y_train, y_test

@@ -1,11 +1,12 @@
-def parse_cli():
-    """parse CLI
+import argparse as ap
+import os
+
+
+def parse_cli_main():
+    """parse CLI for main function
 
     :returns: args
     """
-    import argparse as ap
-    import os
-
     par = ap.ArgumentParser(description="Automated Cervical Cancer Diagnosis",
                             formatter_class=ap.ArgumentDefaultsHelpFormatter)
 
@@ -80,6 +81,56 @@ def parse_cli():
                      dest="l",
                      help="Logging Level <DEBUG, INFO, WARNING, ERROR>",
                      default='DEBUG')
+
+    args = par.parse_args()
+
+    return args
+
+
+def parse_cli_visualizer():
+    """parse CLI for feature visualization tool
+
+    :returns: args
+    """
+    par = ap.ArgumentParser(description="2D Feature Visualization",
+                            formatter_class=ap.ArgumentDefaultsHelpFormatter)
+
+    par.add_argument("--data_dir",
+                     dest="t_dir",
+                     help="Full Path to Data",
+                     default=os.getcwd() + '/TrainingData/')
+
+    par.add_argument("--output_file",
+                     dest="out_file",
+                     help="Full Path to Output File",
+                     default=os.getcwd() + '/outputs/feature_plot.png')
+
+    par.add_argument("--med",
+                     dest="med_feats",
+                     help="Color channels to extract median feature from <"
+                          "rgb>",
+                     default='')
+
+    par.add_argument("--var",
+                     dest="var_feats",
+                     help="Color channels to extract variance feature from <"
+                          "rgb>",
+                     default='')
+
+    par.add_argument("--mode",
+                     dest="mode_feats",
+                     help="Color channels to extract mode feature from <rgb>",
+                     default='')
+
+    par.add_argument("--otsu",
+                     dest="otsu_feats",
+                     help="Color channels to extract otsu feature from <rgb>",
+                     default='')
+
+    par.add_argument("--y",
+                     dest="ypct_feat",
+                     help="Use percent yellow pixel feature <True/False>",
+                     action='store_true')
 
     args = par.parse_args()
 

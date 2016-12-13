@@ -4,297 +4,16 @@ import logging
 sys.path.insert(0, os.path.abspath('./src/'))
 
 
-def collect_feature_data(filepath, feature_dict,
-                          omit, b_cutoff=240,
-                          verb=False, outdir='./outputs/'):
-    """
-    collect feature data from a specified directory
-
-    :param filepath: path to tif file or directory containing tif files
-    :param feature_dict: dict of strings specifying color channel for features
-    :param omit: pixel values to omit from calculation of features, ex [0, 255]
-    :param b_cutoff: blue color channel cutoff for glare removal
-    :param verb: verbose mode to save intermediate files and figures
-    :param outdir: directory where output files are saved
-    :return: feature_array, target_array, feature_labels
-    """
-    from preprocess import read_tiff, rgb_preprocess
-    from feature_extraction import extract_features
-    import numpy as np
-
-    msg = 'Data location: %s' % filepath
-    logging.info(msg)
-    print(msg)
-
-    msg = '\nSELECTED FEATURES:'
-    logging.info(msg)
-    print(msg)
-    msg = 'Color channel median: %s' % feature_dict['med']
-    logging.info(msg)
-    print(msg)
-    msg = 'Color channel variance: %s' % feature_dict['var']
-    logging.info(msg)
-    print(msg)
-    msg = 'Color channel mode: %s' % feature_dict['mode']
-    logging.info(msg)
-    print(msg)
-    msg = 'Color channel Otsu: %s' % feature_dict['otsu']
-    logging.info(msg)
-    print(msg)
-    msg = 'Yellow pixel fraction: %s\n' % feature_dict['ypct']
-    logging.info(msg)
-    print(msg)
-
-    n_feat = len(feature_dict['med'] + feature_dict['var'] +
-                 feature_dict['mode'] + feature_dict['otsu'])
-    if feature_dict['ypct']:
-        n_feat += 1
-
-    # extract all data files from directory or directly use specified tif
-    try:
-        all_files = os.listdir(filepath)
-        data_files = [f for f in all_files if '.tif' in f]
-        data_dir = filepath
-    except NotADirectoryError:
-        data_dir = os.path.dirname(filepath)
-        if data_dir == '.':
-            data_dir = ''
-        data_files = [os.path.split(filepath)[-1], ]
-
-    n_datasets = len(data_files)
-
-    target_array = np.zeros(n_datasets)
-    feature_array = np.zeros((n_datasets, n_feat))
-
-    for i in range(len(data_files)):
-
-        msg = 'Extracting features from ' \
-              + data_files[i] + ' (%d/%d)' % (i + 1, len(data_files))
-        logging.info(msg)
-        print(msg)
-
-        # directory to store outputs for training set
-        feat_outdir = os.path.join(outdir, 'feature_data',
-                                   os.path.splitext(data_files[i])[0])
-
-        rgb = read_tiff(filename=(data_dir + data_files[i]))
-        rgb = rgb_preprocess(rgb, exclude_bg=True,
-                             upper_lim=(0, 0, b_cutoff))
-
-        features, l = extract_features(rgb,
-                                       median_ch=feature_dict['med'],
-                                       variance_ch=feature_dict['var'],
-                                       mode_ch=feature_dict['mode'],
-                                       otsu_ch=feature_dict['otsu'],
-                                       pct_yellow=feature_dict['ypct'],
-                                       omit=omit,
-                                       verb=verb,
-                                       outdir=feat_outdir)
-
-        feature_array[i, :] = features
-
-        if 'dys' in data_files[i]:
-            target_array[i] = 1
-        elif 'heal' in data_files[i]:
-            target_array[i] = -1
-        else:
-            target_array[i] = 0
-
-        msg = 'Target label (1 dysplasia, -1 healthy): %d' % \
-              target_array[i]
-        logging.debug(msg)
-
-    return feature_array, target_array, l
-
-
-def split_data(feature_array, target_array, split=False):
-    """
-    split data into training and testing (test=train data if split is false)
-
-    :param feature_array: N x M array of M features per N datasets
-    :param target_array: N targets associated with each feature set
-    :param split: enable to split data into separate train and test
-    :return: training and test feature sets with corresponding targets
-    """
-    from sklearn.model_selection import train_test_split
-    import numpy as np
-
-    msg = 'Split data into training and test: %s\n' % split
-    logging.info(msg)
-    print(msg)
-
-    if split:
-        # Split data in to training and testing (best practice)
-        class_diff = False
-        # Ensure training or test data don't have uniform class
-        while (class_diff == False):
-            x_train, x_test, y_train, y_test \
-                = train_test_split(feature_array, target_array, test_size=0.3)
-            if (np.std(y_train) != 0) & (np.std(y_test) != 0):
-                class_diff = True
-
-    else:
-        # Use same data to train and test SVM
-        x_train = feature_array
-        y_train = target_array
-        x_test = feature_array
-        y_test = target_array
-
-    return x_train, x_test, y_train, y_test
-
-
-def classifier_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
-    """
-    calculate and save classifier metrics to specified directory
-
-    :param x_test: test data feature set (data set # x features)
-    :param y_test: test data true targets
-    :param y_pred: predicted targets
-    :param outdir: directory where output files are saved
-    :return: roc, auc, cm, accuracy, f1
-    """
-    from classification_model_metrics import calc_ROC, calc_AUC, \
-        gen_confusion_matrix, calc_accuracy, calc_f1_score
-
-    msg = '\nOUTPUTS'
-    logging.info(msg)
-    print(msg)
-
-    soft_predictions = svm.predict_proba(x_test)
-
-    outfile = os.path.join(outdir, 'roc.png')
-    roc = calc_ROC(y_test, soft_predictions[:, 1], True, outfile=outfile)
-    auc = calc_AUC(y_test, soft_predictions[:, 1])
-
-    outfile = os.path.join(outdir, 'confusionmat.png')
-    cm = gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
-                              verb=True, outfile=outfile)
-
-    msg = '\n***** RESULTS *****'
-    logging.info(msg)
-    print(msg)
-
-    accuracy = calc_accuracy(y_test, y_pred)
-    msg = 'Classification accuracy = %.1f %%' % accuracy
-    logging.info(msg)
-    print(msg)
-
-    f1 = calc_f1_score(y_test, y_pred)
-    msg = 'F1-score on test set = %.1f ' % f1
-    logging.info(msg)
-    print(msg)
-
-    msg = 'AUC on test set = %.1f ' % auc
-    logging.info(msg)
-    print(msg)
-
-    msg = '*Additional results in outputs folder.\n' \
-          '*******************\n'
-    logging.info(msg)
-    print(msg)
-
-    return roc, auc, cm, accuracy, f1
-
-
-def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
-                       outdir='./outputs/'):
-    """
-    calculate prediction metrics and generate images with lesions labeled
-
-    :param filepath: path to tif file or directory containing tif files
-    :param y_pred: predicted targets
-    :param y_test: true targets, set to zeros if targets unknown
-    :param b_cutoff: blue color channel cutoff for glare removal
-    :param outdir: directory where output files are saved
-    """
-    from preprocess import read_tiff, rgb_preprocess
-    from feature_extraction import calc_pct_yellow
-    from classification_model_metrics import calc_accuracy
-
-    try:
-        all_files = os.listdir(filepath)
-        data_files = [f for f in all_files if '.tif' in f]
-        data_dir = filepath
-    except NotADirectoryError:
-        data_dir = os.path.dirname(filepath)
-        if data_dir == '.':
-            data_dir = ''
-        data_files = [os.path.split(filepath)[-1], ]
-
-    # output metrics and calculate percent lesion for dysplasia predictions
-    for i in range(len(data_files)):
-
-        msg = '\n<<< %s >>>' % (data_files[i])
-        logging.info(msg)
-        print(msg)
-
-        msg = '\nOUTPUTS'
-        logging.info(msg)
-        print(msg)
-
-        if y_pred[i] == 1:
-            rgb = read_tiff(filename=(data_dir + data_files[i]))
-            rgb = rgb_preprocess(rgb, exclude_bg=True,
-                                 upper_lim=(0, 0, b_cutoff))
-
-            filename = os.path.splitext(data_files[i])[0] + '_labeled.png'
-            outfile = os.path.join(outdir, filename)
-            pct_les = calc_pct_yellow(rgb, verb=True, outfile=outfile)
-
-            # output prediction results
-            msg = '\n***** RESULTS *****'
-            logging.info(msg)
-            print(msg)
-
-            msg = "SVM Classification Result = Dysplasia"
-            logging.info(msg)
-            print(msg)
-
-            msg = "Percent Lesion = %.1f %%" % pct_les
-            logging.info(msg)
-            print(msg)
-
-        elif y_pred[i] == -1:
-            msg = '\n***** RESULTS *****'
-            logging.info(msg)
-            print(msg)
-
-            msg = "SVM Classification Result = Healthy"
-            logging.info(msg)
-            print(msg)
-
-        if y_test[i] == 1:
-            msg = "True Classification = Dysplasia"
-        elif y_test[i] == -1:
-            msg = "True Classification = Healthy"
-        else:
-            msg = "True Classification = N/A"
-        logging.info(msg)
-        print(msg)
-
-        msg = '*******************\n\n'
-        logging.info(msg)
-        print(msg)
-
-    # if targets are known, output prediction accuracy
-    if not (0 in y_test):
-        accuracy = calc_accuracy(y_test, y_pred)
-        msg = 'Prediction accuracy = %.1f %%\n' % accuracy
-        logging.info(msg)
-        print(msg)
-
-    msg = '*Additional results in outputs folder.\n'
-    logging.info(msg)
-    print(msg)
-
-
 if __name__ == "__main__":
     from classification_model import *
-    from parse_cli import parse_cli
+    from classification_model_metrics import classifier_metrics, \
+        prediction_metrics
+    from feature_extraction import collect_feature_data
+    from parse_cli import parse_cli_main
     import pickle
 
     # gather general CLI
-    args = parse_cli()
+    args = parse_cli_main()
     verb = args.v
     train = args.t
     model_filename = args.model
@@ -311,11 +30,12 @@ if __name__ == "__main__":
 
     # pixels to omit from feature extraction
     omit_pix = [0, 255]
+
     # threshold for glare filter
     b_lim = 240
 
+    # SVM TRAINING
     if train:
-
         split_train_test = args.splitting
         data_path = args.t_dir
         median_feats = args.med_feats
@@ -363,8 +83,9 @@ if __name__ == "__main__":
         y_pred = class_predict(x_test, model_filename)
 
         # Calculate and save output metrics
-        classifier_metrics(x_test, y_test, y_pred, outdir=outdir)
-        
+        classifier_metrics(svm, x_test, y_test, y_pred, outdir=outdir)
+
+    # SVM PREDICTION
     else:
         # gather prediction specific CLI
         unknown_data = args.f
