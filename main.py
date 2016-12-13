@@ -103,7 +103,7 @@ if __name__ == "__main__":
             print(msg)
 
             # directory to store outputs for training set
-            train_outdir = os.path.join(outdir,
+            train_outdir = os.path.join(outdir, 'training',
                                     os.path.splitext(train_files[i])[0])
 
             rgb = read_tiff(filename=(data_path+train_files[i]))
