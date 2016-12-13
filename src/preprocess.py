@@ -236,7 +236,7 @@ def process_rgb_histogram(hist, omit=[]):
         hist[ii] = 0
 
     tot_pix = sum(hist)
-    print(tot_pix)
+
     try:
         norm_hist = np.divide(hist, tot_pix)
     except RuntimeWarning:
