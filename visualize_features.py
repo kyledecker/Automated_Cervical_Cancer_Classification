@@ -9,16 +9,15 @@ def parse_cli_visualizer():
 
     :returns: args
     """
-    from parse_cli import parse_bool
     import argparse as ap
     import os
 
     par = ap.ArgumentParser(description="2D Feature Visualization",
                             formatter_class=ap.ArgumentDefaultsHelpFormatter)
 
-    par.add_argument("--train_dir",
+    par.add_argument("--data_dir",
                      dest="t_dir",
-                     help="Full Path to Training Data",
+                     help="Full Path to Data",
                      default=os.getcwd() + '/TrainingData/')
 
     par.add_argument("--output_file",
@@ -51,16 +50,14 @@ def parse_cli_visualizer():
     par.add_argument("--y",
                      dest="ypct_feat",
                      help="Use percent yellow pixel feature <True/False>",
-                     type=str,
-                     default='False')
+                     action='store_true')
 
     args = par.parse_args()
-    args.ypct_feat = parse_bool(args.ypct_feat)
 
     return args
 
 
-def plot_features(features, targets, labels, outfile='feat_plot.png'):
+def plot_features(features, targets, labels, outfile='features.png'):
     """
     visualize 2D feature space for data set with known targets
 
@@ -147,10 +144,8 @@ if __name__ == "__main__":
         sys.exit()
 
     feature_array, target_array, feature_labels = \
-        collect_feature_data(data_path, feature_types,
-                              omit=omit_pix, b_cutoff=b_lim,
-                              verb=False)
+        collect_feature_data(data_path, feature_types, omit=omit_pix,
+                             b_cutoff=b_lim, verb=False)
 
     print('\nOUTPUTS')
     plot_features(feature_array, target_array, feature_labels, outfile)
-    print('\n')

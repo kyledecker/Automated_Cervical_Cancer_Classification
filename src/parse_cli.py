@@ -34,7 +34,6 @@ def parse_cli():
                      help="Train the Classifier",
                      action='store_true')
 
-
     par.add_argument("--model_filename",
                      dest="model",
                      help="Filename of the classification model",
@@ -82,7 +81,6 @@ def parse_cli():
                      help="Logging Level <DEBUG, INFO, WARNING, ERROR>",
                      default='DEBUG')
 
-    #par.parse_args('--train --out_of_bag_testing'.split())
     args = par.parse_args()
 
     return args
