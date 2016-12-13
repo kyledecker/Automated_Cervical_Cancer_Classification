@@ -264,11 +264,11 @@ def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
             print(msg)
 
         if y_test[i] == 1:
-            msg = "True Target = Dysplasia"
+            msg = "True Classification = Dysplasia"
         elif y_test[i] == -1:
-            msg = "True Target = Healthy"
+            msg = "True Classification = Healthy"
         else:
-            msg = "True Target = N/A"
+            msg = "True Classification = N/A"
         logging.info(msg)
         print(msg)
 
