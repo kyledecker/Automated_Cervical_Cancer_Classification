@@ -110,15 +110,15 @@ if __name__ == "__main__":
             rgb = rgb_preprocess(rgb, exclude_bg=True,
                                  upper_lim=(0, 0, b_thresh))
 
-            features = extract_features(rgb,
-                                        median_ch=feature_types['med'],
-                                        variance_ch=feature_types['var'],
-                                        mode_ch=feature_types['mode'],
-                                        otsu_ch=feature_types['otsu'],
-                                        pct_yellow=feature_types['ypct'],
-                                        omit=omit_pix,
-                                        verb=verb,
-                                        outdir=train_outdir)
+            features, l = extract_features(rgb,
+                                           median_ch=feature_types['med'],
+                                           variance_ch=feature_types['var'],
+                                           mode_ch=feature_types['mode'],
+                                           otsu_ch=feature_types['otsu'],
+                                           pct_yellow=feature_types['ypct'],
+                                           omit=omit_pix,
+                                           verb=verb,
+                                           outdir=train_outdir)
 
             feature_array[i, :] = features
 
@@ -223,15 +223,15 @@ if __name__ == "__main__":
         rgb = rgb_preprocess(rgb, exclude_bg=True,
                              upper_lim=(0, 0, b_thresh))
 
-        features = extract_features(rgb,
-                                    median_ch=feature_types['med'],
-                                    variance_ch=feature_types['var'],
-                                    mode_ch=feature_types['mode'],
-                                    otsu_ch=feature_types['otsu'],
-                                    pct_yellow=feature_types['ypct'],
-                                    omit=omit_pix,
-                                    verb=verb,
-                                    outdir=pred_outdir)
+        features, l = extract_features(rgb,
+                                       median_ch=feature_types['med'],
+                                       variance_ch=feature_types['var'],
+                                       mode_ch=feature_types['mode'],
+                                       otsu_ch=feature_types['otsu'],
+                                       pct_yellow=feature_types['ypct'],
+                                       omit=omit_pix,
+                                       verb=verb,
+                                       outdir=pred_outdir)
 
         y_pred = class_predict(features.reshape(1, -1), model_filename)
 

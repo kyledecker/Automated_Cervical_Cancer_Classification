@@ -250,6 +250,8 @@ def extract_features(rgb, median_ch='', variance_ch='',
     # compute desired features
     try:
         median_feats = [calc_median(rgb[:, :, ii], omit) for ii in median_idx]
+        labels = ['R median', 'G median', 'B median']
+        median_labels = [labels[ii] for ii in median_idx]
     except IndexError:
         msg = 'ERROR [extract_features] Color channel index for median ' \
               'feature out of bounds (0:R, 1:G, 2:B).'
@@ -258,10 +260,13 @@ def extract_features(rgb, median_ch='', variance_ch='',
         sys.exit()
     except TypeError:
         median_feats = []
+        median_labels = []
 
     try:
         variance_feats = [calc_variance(rgb[:, :, ii], omit) for ii in
                           variance_idx]
+        labels = ['R variance', 'G variance', 'B variance']
+        variance_labels = [labels[ii] for ii in variance_idx]
     except IndexError:
         msg = 'ERROR [extract_features] Color channel index for var ' \
               'feature out of bounds (0:R, 1:G, 2:B).'
@@ -270,9 +275,12 @@ def extract_features(rgb, median_ch='', variance_ch='',
         sys.exit()
     except TypeError:
         variance_feats = []
+        variance_labels = []
 
     try:
         mode_feats = [calc_mode(hists[ii], omit) for ii in mode_idx]
+        labels = ['R mode', 'G mode', 'B mode']
+        mode_labels = [labels[ii] for ii in mode_idx]
     except IndexError:
         msg = 'ERROR [extract_features] Color channel index for mode ' \
               'feature out of bounds (0:R, 1:G, 2:B).'
@@ -281,9 +289,12 @@ def extract_features(rgb, median_ch='', variance_ch='',
         sys.exit()
     except TypeError:
         mode_feats = []
+        mode_labels = []
 
     try:
-        outfiles = {ii: os.path.join(outdir, 'otsu'+str(ii)+'.png')
+        labels = ['R threshold', 'G threshold', 'B threshold']
+        otsu_labels = [labels[ii] for ii in otsu_idx]
+        outfiles = {ii: os.path.join(outdir, labels[ii][0] + '_otsu.png')
                     for ii in otsu_idx}
         otsu_feats = [otsu_threshold(rgb[:, :, ii], omit, verb=verb,
                                      outfile=outfiles[ii]) for ii in otsu_idx]
@@ -295,12 +306,15 @@ def extract_features(rgb, median_ch='', variance_ch='',
         sys.exit()
     except TypeError:
         otsu_feats = []
+        otsu_labels = []
 
     if pct_yellow:
         outfile = os.path.join(outdir, 'ypixels.png')
         ypct_feat = calc_pct_yellow(rgb, verb=verb, outfile=outfile)
+        ypct_label = ['Percent Y']
     else:
         ypct_feat = []
+        ypct_label = []
 
     # store all features into a single array
     features = median_feats
@@ -309,4 +323,10 @@ def extract_features(rgb, median_ch='', variance_ch='',
     features = np.append(features, otsu_feats)
     features = np.append(features, ypct_feat)
 
-    return features
+    feature_labels = median_labels
+    feature_labels = np.append(feature_labels, variance_labels)
+    feature_labels = np.append(feature_labels, mode_labels)
+    feature_labels = np.append(feature_labels, otsu_labels)
+    feature_labels = np.append(feature_labels, ypct_label)
+
+    return features, feature_labels
