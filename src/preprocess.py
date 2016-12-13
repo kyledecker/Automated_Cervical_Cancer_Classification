@@ -236,7 +236,14 @@ def process_rgb_histogram(hist, omit=[]):
         hist[ii] = 0
 
     tot_pix = sum(hist)
-    norm_hist = np.divide(hist, tot_pix)
+    print(tot_pix)
+    try:
+        norm_hist = np.divide(hist, tot_pix)
+    except RuntimeWarning:
+        msg = 'Trying to normalize histogram by dividing by 0 ' \
+              'Setting norm_hist to 0 in result.'
+        logging.debug(msg)
+        norm_hist = np.zeros(len(hist))
 
     return norm_hist
 
