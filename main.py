@@ -199,13 +199,13 @@ def classifier_metrics(x_test, y_test, y_pred, outdir='./outputs/'):
 def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
                        outdir='./outputs/'):
     """
+    calculate prediction metrics and generate images with lesions labeled
 
-    :param filepath:
-    :param y_pred:
-    :param y_test:
-    :param b_cutoff:
-    :param outdir:
-    :return:
+    :param filepath: path to tif file or directory containing tif files
+    :param y_pred: predicted targets
+    :param y_test: true targets, set to zeros if targets unknown
+    :param b_cutoff: blue color channel cutoff for glare removal
+    :param outdir: directory where output files are saved
     """
     from preprocess import read_tiff, rgb_preprocess
     from feature_extraction import calc_pct_yellow
