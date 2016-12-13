@@ -10,7 +10,7 @@ def collect_feature_data(filepath, feature_dict,
     """
     collect feature data from a specified directory
 
-    :param filepath: directory containing all data
+    :param filepath: path to tif file or directory containing tif files
     :param feature_dict: dict of strings specifying color channel for features
     :param omit: pixel values to omit from calculation of features, ex [0, 255]
     :param b_cutoff: blue color channel cutoff for glare removal
@@ -50,7 +50,15 @@ def collect_feature_data(filepath, feature_dict,
     if feature_dict['ypct']:
         n_feat += 1
 
-    data_files = os.listdir(filepath)
+    # extract all data files from directory or directly use specified tif
+    try:
+        all_files = os.listdir(filepath)
+        data_files = [f for f in all_files if '.tif' in f]
+        data_dir = filepath
+    except NotADirectoryError:
+        data_dir = os.path.dirname(filepath)
+        data_files = [os.path.split(filepath)[-1], ]
+
     n_datasets = len(data_files)
 
     target_array = np.zeros(n_datasets)
@@ -67,7 +75,7 @@ def collect_feature_data(filepath, feature_dict,
         feat_outdir = os.path.join(outdir, 'feature_data',
                                    os.path.splitext(data_files[i])[0])
 
-        rgb = read_tiff(filename=(filepath + data_files[i]))
+        rgb = read_tiff(filename=(data_dir + data_files[i]))
         rgb = rgb_preprocess(rgb, exclude_bg=True,
                              upper_lim=(0, 0, b_cutoff))
 
@@ -88,7 +96,7 @@ def collect_feature_data(filepath, feature_dict,
         elif 'heal' in data_files[i]:
             target_array[i] = -1
         else:
-            target_array[i] = None
+            target_array[i] = 0
 
         msg = 'Target label (1 dysplasia, -1 healthy): %d' % \
               target_array[i]
