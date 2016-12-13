@@ -63,9 +63,9 @@ def parse_cli_visualizer():
 
 def plot_features(features, targets, labels, outfile='feat_plot.png'):
     """
-    visualize 2D features for samples from 2 known classes
+    visualize 2D feature space for data set with known targets
 
-    :param features: N x 2 sets of feature values
+    :param features: N x 2 array of features from N data sets
     :param targets: target labels corresponding to each set of features
     :param labels: labels for each feature
     :param outfile: save location of output feature plot
