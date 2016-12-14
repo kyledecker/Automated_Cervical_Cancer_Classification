@@ -386,8 +386,8 @@ def plot_features(features, targets, labels, outfile='features.png'):
 
 
 def collect_feature_data(filepath, feature_dict,
-                          omit, b_cutoff=240,
-                          verb=False, outdir='./outputs/'):
+                         omit, b_cutoff=240,
+                         verb=False, outdir='./outputs/'):
     """
     collect feature data from a specified directory
 

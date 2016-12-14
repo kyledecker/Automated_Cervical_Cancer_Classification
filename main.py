@@ -108,9 +108,8 @@ if __name__ == "__main__":
             feature_types = pickle.load(open(featset_filename, 'rb'))
         except FileNotFoundError:
             msg = 'Error loading feature info file: %s \n' \
-                'Ensure that you have previously trained the model by running ' \
-                'main.py with train=True \n' \
-                'Exiting script...' % featset_filename
+                  'Ensure that you have previously trained the model by ' \
+                  'running: python main.py --train' % featset_filename
             print(msg)
             logging.error(msg)
             sys.exit()

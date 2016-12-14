@@ -24,6 +24,7 @@ def test_roc_auc():
     auc = calc_AUC(targets, soft_predictions)
     assert auc == 1
 
+
 def test_f1_score():
     from classification_model_metrics import calc_f1_score
     import numpy as np

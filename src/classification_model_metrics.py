@@ -37,9 +37,12 @@ def calc_f1_score(targets, predictions):
     import warnings
     warnings.filterwarnings("error")
 
-    true_pos = np.sum((targets == 1) & (predictions == 1)) / np.sum(targets == 1)
-    false_pos = np.sum((targets == -1) & (predictions == 1)) / np.sum(targets == -1)
-    false_neg = np.sum((targets == 1) & (predictions == -1)) / np.sum(targets == 1)
+    true_pos = np.sum((targets == 1) &
+                      (predictions == 1)) / np.sum(targets == 1)
+    false_pos = np.sum((targets == -1) &
+                       (predictions == 1)) / np.sum(targets == -1)
+    false_neg = np.sum((targets == 1) &
+                       (predictions == -1)) / np.sum(targets == 1)
     try:
         precision = true_pos / (true_pos + false_pos)
     except RuntimeWarning:
@@ -77,7 +80,6 @@ def calc_ROC(targets, soft_predictions, plot_ROC=False, outfile='./roc.png'):
     from sklearn.metrics import roc_curve
 
     fpr, tpr, thresh = roc_curve(targets, soft_predictions)
-    
     if plot_ROC:
         msg = '[calc_ROC] Saving ROC curve to: %s' % outfile
         logging.info(msg)
