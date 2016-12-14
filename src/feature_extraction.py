@@ -56,17 +56,18 @@ def otsu_threshold(img, omit=[], verb=False, outfile='./otsu_img.png'):
         print(msg)
         sys.exit()
 
+    otsu_img = np.array(img)
     # set omitted pixel values as 0
     for omit_idx in get_iterable(omit):
-        img[img == omit_idx] = np.nan
-    img[np.isnan(img)] = 0
+        otsu_img[img == omit_idx] = np.nan
+        otsu_img[np.isnan(otsu_img)] = 0
 
-    threshold_global_otsu = threshold_otsu(img)
+    threshold_global_otsu = threshold_otsu(otsu_img)
 
     if verb:
         import matplotlib.pyplot as plt
         from accessory import create_dir
-        global_otsu = img >= threshold_global_otsu
+        global_otsu = otsu_img >= threshold_global_otsu
         plt.imshow(global_otsu, cmap=plt.cm.gray)
 
         msg = '[otsu_threshold] Saving Otsu threshold image: %s' % outfile
