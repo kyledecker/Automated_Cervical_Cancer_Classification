@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     print('\nFEATURE SPACE VISUALIZATION')
     args = parse_cli_visualizer()
-    data_path = args.t_dir
+    data_path = args.data_dir
     outfile = args.out_file
 
     median_feats = args.med_feats

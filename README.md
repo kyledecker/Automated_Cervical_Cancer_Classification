@@ -23,11 +23,15 @@ python main.py
 
 Ex. usage for _training_ SVM using default features and data set:
 ```
-python main.py --train=True --train_dir=./TrainingData/ --verbose=True
+python main.py --train --train_dir=./TrainingData/ --verbose
 ```
 Ex. usage for _classifying_ unknown image file:
 ```
-python main.py --f=./ExampleAbnormalCervix.tif --verbose=True
+python main.py --f=./ExampleAbnormalCervix.tif --verbose
+```
+Ex. usage for _classifying_ directory of unknown image files:
+```
+python main.py --f=./dysplasia/ --verbose
 ```
 For help and description of input arguments:
 ```
@@ -43,5 +47,5 @@ A visualization tool is available for plotting the 2D feature space of a data se
 
 Ex. usage for plotting R median and B variance feature space:
 ```
-python visualize_features.py --train_dir=./TrainingData/ --med=r --var=b
+python visualize_features.py --data_dir=./TrainingData/ --med=r --var=b
 ```

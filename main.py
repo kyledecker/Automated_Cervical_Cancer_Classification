@@ -88,7 +88,7 @@ if __name__ == "__main__":
     # SVM PREDICTION
     else:
         # gather prediction specific CLI
-        unknown_data = args.f
+        unknown_data = args.predict
 
         msg = '\nPREDICTION'
         logging.info(msg)

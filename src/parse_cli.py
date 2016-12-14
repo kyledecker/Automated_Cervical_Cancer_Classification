@@ -10,9 +10,9 @@ def parse_cli_main():
     par = ap.ArgumentParser(description="Automated Cervical Cancer Diagnosis",
                             formatter_class=ap.ArgumentDefaultsHelpFormatter)
 
-    par.add_argument("--f",
-                     dest="f",
-                     help="File Name of Image to be Classified",
+    par.add_argument("--predict",
+                     dest="predict",
+                     help="File or Directory of Files to be Classified",
                      default='./ExampleAbnormalCervix.tif')
 
     par.add_argument("--train_dir",
@@ -96,7 +96,7 @@ def parse_cli_visualizer():
                             formatter_class=ap.ArgumentDefaultsHelpFormatter)
 
     par.add_argument("--data_dir",
-                     dest="t_dir",
+                     dest="data_dir",
                      help="Full Path to Data",
                      default=os.getcwd() + '/TrainingData/')
 
