@@ -458,7 +458,8 @@ def collect_feature_data(filepath, feature_dict,
         feat_outdir = os.path.join(outdir, 'feature_data',
                                    os.path.splitext(data_files[i])[0])
 
-        rgb = read_tiff(filename=(data_dir + data_files[i]))
+        data_file = os.path.join(data_dir, data_files[i])
+        rgb = read_tiff(filename=data_file)
         rgb = rgb_preprocess(rgb, exclude_bg=True,
                              upper_lim=(0, 0, b_cutoff))
 
