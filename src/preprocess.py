@@ -34,11 +34,18 @@ def read_tiff(filename, verb=False):
     try:
         r, g, b = img.split()
     except ValueError as err:
-        msg = 'ERROR [read_tiff] RGB color channels not ' \
-              'available: {0}'.format(err)
-        logging.error(msg)
-        print(msg)
-        sys.exit()
+        try:
+            r, g, b, ir = img.split()
+            msg = 'WARNING [read_tiff] Attempting to read 4 channel TIFF ' \
+                  'image.'
+            logging.warning(msg)
+            print(msg)
+        except ValueError as err:
+            msg = 'ERROR [read_tiff] RGB color channels not ' \
+                  'available: {0}'.format(err)
+            logging.error(msg)
+            print(msg)
+            sys.exit()
 
     # assign RGB channels to separate indices of array
     ra = np.array(r)
