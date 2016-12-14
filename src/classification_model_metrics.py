@@ -240,7 +240,8 @@ def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
         print(msg)
 
         if y_pred[i] == 1:
-            rgb = read_tiff(filename=(data_dir + data_files[i]))
+            data_file = os.path.join(data_dir, data_files[i])
+            rgb = read_tiff(filename=data_file)
             rgb = rgb_preprocess(rgb, exclude_bg=True,
                                  upper_lim=(0, 0, b_cutoff))
 
