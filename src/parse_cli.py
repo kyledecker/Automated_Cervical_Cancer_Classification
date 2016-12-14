@@ -50,6 +50,12 @@ def parse_cli_main():
                      help="Use out of bag samples for classification metrics",
                      action='store_true')
 
+    par.add_argument("--kfolds",
+                     dest="kfolds",
+                     help="Number of folds to use for cross validation",
+                     type=int,
+                     default=5)
+
     par.add_argument("--median_features",
                      dest="med_feats",
                      help="Color channels to extract median feature from <"

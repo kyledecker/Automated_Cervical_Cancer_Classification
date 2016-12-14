@@ -296,7 +296,9 @@ def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
     print(msg)
 
 
-def classifier_metrics(model, x_test, y_test, y_pred, outdir='./outputs/'):
+def classifier_metrics(model, x_test, y_test, y_pred,
+                       feature_array, target_array,
+                       k_folds=5, outdir='./outputs/'):
     """
     calculate and save classifier metrics to specified directory
 
@@ -304,6 +306,9 @@ def classifier_metrics(model, x_test, y_test, y_pred, outdir='./outputs/'):
     :param x_test: test data feature set (data set # x features)
     :param y_test: test data true targets
     :param y_pred: predicted targets
+    :param feature_array: complete set of features
+    :param target_array: complete set of targets
+    :param k_folds: number of folds to use in k-fold cross validation
     :param outdir: directory where output files are saved
     :return: roc, auc, cm, accuracy, f1
     """
@@ -330,7 +335,7 @@ def classifier_metrics(model, x_test, y_test, y_pred, outdir='./outputs/'):
     print(msg)
 
     accuracy = calc_accuracy(y_test, y_pred)
-    msg = 'Classification accuracy = %.1f %%' % accuracy
+    msg = 'Accuracy on test set = %.1f %%' % accuracy
     logging.info(msg)
     print(msg)
 
@@ -343,7 +348,19 @@ def classifier_metrics(model, x_test, y_test, y_pred, outdir='./outputs/'):
     logging.info(msg)
     print(msg)
 
-    msg = '*Additional results in outputs folder.\n' \
+    msg = '\n-- %d-fold Cross Validation --' % k_folds
+    logging.info(msg)
+    print(msg)
+
+    from sklearn.model_selection import cross_val_score
+    scores = cross_val_score(model, feature_array, target_array, cv=k_folds)
+
+    msg = 'Mean accuracy = %0.2f (+/- %0.2f)' % (scores.mean(),
+                                                 scores.std() * 2)
+    logging.info(msg)
+    print(msg)
+
+    msg = '\n*Additional results in outputs folder.\n' \
           '*******************\n'
     logging.info(msg)
     print(msg)

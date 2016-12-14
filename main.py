@@ -43,6 +43,7 @@ if __name__ == "__main__":
         mode_feats = args.mode_feats
         otsu_feats = args.otsu_feats
         pct_yellow = args.ypct_feat
+        k_folds = args.kfolds
 
         feature_types = {'med': median_feats,
                          'var': variance_feats,
@@ -83,7 +84,8 @@ if __name__ == "__main__":
         y_pred = class_predict(x_test, model_filename)
 
         # Calculate and save output metrics
-        classifier_metrics(svm, x_test, y_test, y_pred, outdir=outdir)
+        classifier_metrics(svm, x_test, y_test, y_pred,
+                           feature_array, target_array, k_folds, outdir=outdir)
 
     # SVM PREDICTION
     else:
