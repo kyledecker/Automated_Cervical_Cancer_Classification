@@ -94,7 +94,7 @@ if __name__ == "__main__":
         logging.info(msg)
         print(msg)
 
-        msg = 'Target prediction file: %s' % model_filename
+        msg = 'Target prediction file(s): %s' % unknown_data
         logging.info(msg)
         print(msg)
 
