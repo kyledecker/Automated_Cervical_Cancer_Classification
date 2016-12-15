@@ -91,4 +91,3 @@ def test_write_csv():
     assert os.path.exists(filepath)
 
     os.remove(filepath)
-
