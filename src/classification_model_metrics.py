@@ -216,6 +216,7 @@ def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
     from preprocess import read_tiff, rgb_preprocess
     from feature_extraction import calc_pct_yellow
     from classification_model_metrics import calc_accuracy
+    from accessory import write_csv
     import os
 
     try:
@@ -239,6 +240,7 @@ def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
         logging.info(msg)
         print(msg)
 
+        # output prediction results
         if y_pred[i] == 1:
             data_file = os.path.join(data_dir, data_files[i])
             rgb = read_tiff(filename=data_file)
@@ -249,34 +251,42 @@ def prediction_metrics(filepath, y_pred, y_test, b_cutoff=240,
             outfile = os.path.join(outdir, filename)
             pct_les = calc_pct_yellow(rgb, verb=True, outfile=outfile)
 
-            # output prediction results
-            msg = '\n***** RESULTS *****'
-            logging.info(msg)
-            print(msg)
-
-            msg = "SVM Classification Result = Dysplasia"
-            logging.info(msg)
-            print(msg)
-
-            msg = "Percent Lesion = %.1f %%" % pct_les
-            logging.info(msg)
-            print(msg)
+            predicted_class = 'Dysplasia'
+            stage = '%.1f %%' % pct_les
 
         elif y_pred[i] == -1:
-            msg = '\n***** RESULTS *****'
-            logging.info(msg)
-            print(msg)
-
-            msg = "SVM Classification Result = Healthy"
-            logging.info(msg)
-            print(msg)
+            predicted_class = 'Healthy'
+            stage = 'N/A'
 
         if y_test[i] == 1:
-            msg = "True Classification = Dysplasia"
+            true_class = 'Dysplasia'
+
         elif y_test[i] == -1:
-            msg = "True Classification = Healthy"
+            true_class = 'Healthy'
+
         else:
-            msg = "True Classification = N/A"
+            true_class = 'N/A'
+
+        # print results to command line and save in csv
+        filename = os.path.splitext(data_files[i])[0] + '_prediction.csv'
+        outfile = os.path.join(outdir, filename)
+        labels = ['Prediction', 'Pct Lesion', 'Truth']
+        values = [predicted_class, stage, true_class]
+        write_csv(labels, values, outfile)
+
+        msg = '\n***** RESULTS *****'
+        logging.info(msg)
+        print(msg)
+
+        msg = 'SVM Classification Result = %s' % predicted_class
+        logging.info(msg)
+        print(msg)
+
+        msg = 'Percent Lesion = %s' % stage
+        logging.info(msg)
+        print(msg)
+
+        msg = 'True Classification = %s' % true_class
         logging.info(msg)
         print(msg)
 
@@ -314,6 +324,8 @@ def classifier_metrics(model, x_test, y_test, y_pred,
     """
     from classification_model_metrics import calc_ROC, calc_AUC, \
         gen_confusion_matrix, calc_accuracy, calc_f1_score
+    from sklearn.model_selection import cross_val_score
+    from accessory import write_csv
     import os
 
     msg = '\nOUTPUTS'
@@ -330,16 +342,24 @@ def classifier_metrics(model, x_test, y_test, y_pred,
     cm = gen_confusion_matrix(y_test, y_pred, ('Healthy', 'Dysp.'),
                               verb=True, outfile=outfile)
 
+    accuracy = calc_accuracy(y_test, y_pred)
+    f1 = calc_f1_score(y_test, y_pred)
+    scores = cross_val_score(model, feature_array, target_array, cv=k_folds)
+
+    outfile = os.path.join(outdir, 'classifier_metrics.csv')
+    labels = ['Test Accuracy', 'Test F1', 'Test AUC', '%d-fold CV Accuracy'
+              % k_folds]
+    values = [accuracy, f1, auc, scores.mean()]
+    write_csv(labels, values, outfile)
+
     msg = '\n***** RESULTS *****'
     logging.info(msg)
     print(msg)
 
-    accuracy = calc_accuracy(y_test, y_pred)
     msg = 'Accuracy on test set = %.1f %%' % accuracy
     logging.info(msg)
     print(msg)
 
-    f1 = calc_f1_score(y_test, y_pred)
     msg = 'F1-score on test set = %.1f ' % f1
     logging.info(msg)
     print(msg)
@@ -351,9 +371,6 @@ def classifier_metrics(model, x_test, y_test, y_pred,
     msg = '\n-- %d-fold Cross Validation --' % k_folds
     logging.info(msg)
     print(msg)
-
-    from sklearn.model_selection import cross_val_score
-    scores = cross_val_score(model, feature_array, target_array, cv=k_folds)
 
     msg = 'Mean accuracy = %0.2f (+/- %0.2f)' % (scores.mean(),
                                                  scores.std() * 2)

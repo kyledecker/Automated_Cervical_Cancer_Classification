@@ -78,3 +78,17 @@ def test_create_dir():
     create_dir(filepath)
     assert os.path.exists(filedir)
     os.rmdir(filedir)
+
+
+def test_write_csv():
+    from accessory import write_csv
+
+    filepath = 'file.csv'
+    labels = [ii for ii in range(0, 5)]
+    values = labels
+
+    write_csv(labels, values, filepath)
+    assert os.path.exists(filepath)
+
+    os.remove(filepath)
+

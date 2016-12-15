@@ -71,7 +71,7 @@ def create_dir(filepath):
     :param filepath: file path and name
     """
     out_dir = os.path.dirname(filepath)
-    if not os.path.exists(out_dir):
+    if not os.path.exists(out_dir) and out_dir != '':
         try:
             msg = '[create_dir] Creating new directory: ' + out_dir
             print(msg)
@@ -223,3 +223,36 @@ def percent_color(rgb, color):
     percent = 100*nCol/nTot
 
     return percent
+
+
+def write_csv(labels, values, outfile='./outputs/'):
+    """
+    write labeled values to a csv file
+
+    :param labels: labels for each value
+    :param values: values to write to file
+    :param outfile: name and path of saved .csv
+    :return:
+    """
+    if not ('.csv' in outfile):
+        msg = 'ERROR [write_csv] Output filename does not have .csv extension.'
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    if len(labels) != len(values):
+        msg = 'ERROR [write_csv] Dimension mismatch between number of ' \
+              'labels and number of values to write to csv. %d labels and ' \
+              '!= %d values' % (len(labels), len(values))
+        print(msg)
+        logging.error(msg)
+        sys.exit()
+
+    create_dir(outfile)
+    with open(outfile, 'w') as f:
+        [f.write('{0}, {1}\n'.format(labels[ii], values[ii]))
+         for ii in range(0, len(values))]
+
+    msg = '[write_csv] Saving csv file to: %s' % outfile
+    logging.info(msg)
+    print(msg)
