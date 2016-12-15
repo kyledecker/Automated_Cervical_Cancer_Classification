@@ -218,7 +218,7 @@ def extract_features(rgb, median_ch='', variance_ch='',
     :return: feature array (np.array)
     """
     from preprocess import rgb_histogram
-    from accessory import rgbstring2index
+    from accessory import rgbstring2index, write_csv
     import numpy as np
 
     if rgb.ndim != 3 or rgb.shape[-1] != 3:
@@ -329,6 +329,10 @@ def extract_features(rgb, median_ch='', variance_ch='',
     feature_labels = np.append(feature_labels, mode_labels)
     feature_labels = np.append(feature_labels, otsu_labels)
     feature_labels = np.append(feature_labels, ypct_label)
+
+    if verb:
+        outfile = os.path.join(outdir, 'feature_values.csv')
+        write_csv(feature_labels, features, outfile)
 
     return features, feature_labels
 
