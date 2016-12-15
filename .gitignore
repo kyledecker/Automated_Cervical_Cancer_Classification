@@ -1,3 +1,4 @@
+*.csv
 *.pkl
 *.pyc
 *.swg
