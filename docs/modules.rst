@@ -5,4 +5,3 @@ project_ksd15_wjl11
    :maxdepth: 4
 
    src
-   visualize_features
