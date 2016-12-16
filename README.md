@@ -15,6 +15,12 @@ This package is used to classify cervical cancer automatically using features ex
 ## UNIT TESTING
 Unit testing of core functions can performed by running *py.test* from the base directory
 
+## INSTALLATION
+This package requires scikit-learn. To install the latest release, run:
+```
+pip install -U scikit-learn
+```
+
 ## RUN CODE
 The automated cervical cancer diagnosis script can be run from the base directory using the following command:
 ```
@@ -25,6 +31,8 @@ Ex. usage for _training_ SVM using default features and data set:
 ```
 python main.py --train --train_dir=./TrainingData/ --verbose
 ```
+**Note:** Classifier metrics are by default calculated by testing on the training data. Training with a 30% test and 70% training data split can be performed by enabling --out_of_bag_testing
+
 Ex. usage for _classifying_ unknown image file:
 ```
 python main.py --predict=./ExampleAbnormalCervix.tif --verbose
